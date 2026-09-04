@@ -498,6 +498,7 @@ export default function App() {
       <CommandPalette
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
+        onToggle={() => setIsSearchOpen((prev) => !prev)}
         agents={agents}
         policies={policies}
         onSelectAgent={(agentId) => {

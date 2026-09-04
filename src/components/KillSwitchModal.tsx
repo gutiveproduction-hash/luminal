@@ -32,10 +32,12 @@ export const KillSwitchModal: React.FC<KillSwitchModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setTargetId(selectedAgentId || (agents[0]?.id ?? ''));
+      const selectable = agents.filter((a) => a.status !== 'stopped');
+      const preferred = agents.find((a) => a.id === selectedAgentId && a.status !== 'stopped');
+      setTargetId(preferred?.id ?? selectable[0]?.id ?? '');
       setIsArmed(false);
     }
-  }, [isOpen, selectedAgentId]);
+  }, [isOpen, selectedAgentId, agents]);
 
   if (!isOpen) return null;
 
@@ -150,7 +152,8 @@ export const KillSwitchModal: React.FC<KillSwitchModalProps> = ({
 
           <button
             onClick={handleArm}
-            className={`px-4 py-2.5 rounded-sm text-xs font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-2 min-h-[44px] ${
+            disabled={!targetId}
+            className={`px-4 py-2.5 rounded-sm text-xs font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-2 min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed ${
               isArmed
                 ? 'bg-[#F87171] text-black hover:bg-rose-500 shadow-[0_0_25px_rgba(248,113,113,0.5)] animate-pulse'
                 : 'bg-[#F87171]/15 text-[#F87171] border border-[#F87171]/50 hover:bg-[#F87171]/25'

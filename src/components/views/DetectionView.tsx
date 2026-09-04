@@ -125,15 +125,27 @@ export const DetectionView: React.FC<DetectionViewProps> = ({
                   </div>
                 )}
 
-                <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  {alt.tags.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="px-2.5 py-1 rounded-sm text-xs font-medium font-sans bg-[#141414] text-[#B0B0B0] border border-[#222]"
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {alt.tags.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2.5 py-1 rounded-sm text-xs font-medium font-sans bg-[#141414] text-[#B0B0B0] border border-[#222]"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  {alt.agentId && alt.status !== 'resolved' && (
+                    <button
+                      onClick={() => onQuarantineAgent(alt.agentId!)}
+                      className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm text-[11px] font-semibold uppercase tracking-wider font-sans bg-[#F87171]/15 hover:bg-[#F87171]/25 text-[#F87171] border border-[#F87171]/40 transition"
                     >
-                      {tag}
-                    </span>
-                  ))}
+                      <ShieldAlert className="w-3.5 h-3.5" />
+                      <span>Karantina {alt.agentId}</span>
+                    </button>
+                  )}
                 </div>
               </div>
             );

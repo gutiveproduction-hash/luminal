@@ -15,6 +15,7 @@ import { Agent, Policy, ActiveTab } from '../types';
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
+  onToggle: () => void;
   agents: Agent[];
   policies: Policy[];
   onSelectAgent: (agentId: string) => void;
@@ -25,6 +26,7 @@ interface CommandPaletteProps {
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
   isOpen,
   onClose,
+  onToggle,
   agents,
   policies,
   onSelectAgent,
@@ -46,8 +48,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        if (isOpen) onClose();
-        else onClose(); // parent handles toggle
+        onToggle();
       }
       if (e.key === 'Escape' && isOpen) {
         onClose();
@@ -55,7 +56,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, onToggle]);
 
   if (!isOpen) return null;
 

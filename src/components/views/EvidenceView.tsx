@@ -237,7 +237,9 @@ export const EvidenceView: React.FC<EvidenceViewProps> = ({
                 <span className="text-[#888] text-[11px] uppercase tracking-wider font-semibold">
                   Lingkup Bukti Terpilih ({evidenceSections.filter((s) => s.selected).length}/9)
                 </span>
-                <span className="text-[#C5A059] text-xs font-medium">Semua Terpilih</span>
+                <span className="text-[#C5A059] text-xs font-medium">
+                  {evidenceSections.every((s) => s.selected) ? 'Semua Terpilih' : 'Sebagian Terpilih'}
+                </span>
               </div>
 
               <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
