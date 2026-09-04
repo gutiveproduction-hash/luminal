@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Prototipe konsol Jejak: registri agent, pemetaan kewajiban, dan penyusun paket bukti.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%BE%3C/text%3E%3C/svg%3E">
+<title>Konsol Jejak</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root { color-scheme: light dark; }
+  html, body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<style>
+  :root {
+    --bg:        #F6F7FA;
+    --surface:   #FFFFFF;
+    --surface-2: #EEF0F6;
+    --ink:       #171B26;
+    --ink-2:     #3C4356;
+    --muted:     #6B7387;
+    --rule:      #DDE1EB;
+    --rule-soft: #EAEDF3;
+    --brand:     #3B4E9B;
+    --brand-ink: #2C3C7D;
+    --brand-bg:  #E7EAF7;
+    --on-brand:  #FFFFFF;
+    --ok:        #17795E;
+    --ok-bg:     #E2F1EB;
+    --warn:      #92600A;
+    --warn-bg:   #F8EFDC;
+    --crit:      #A32F26;
+    --crit-bg:   #F9E6E3;
+    --shadow:    0 1px 2px rgba(23,27,38,.06), 0 8px 24px -12px rgba(23,27,38,.14);
+
+    --sans: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #0E1017;
+      --surface:   #161A24;
+      --surface-2: #1D222E;
+      --ink:       #E7EAF2;
+      --ink-2:     #C0C6D6;
+      --muted:     #8B93A7;
+      --rule:      #29303F;
+      --rule-soft: #212734;
+      --brand:     #8B9DE8;
+      --brand-ink: #A9B7F1;
+      --brand-bg:  #1C2340;
+      --on-brand:  #0E1017;
+      --ok:        #4FB795;
+      --ok-bg:     #14302A;
+      --warn:      #DFA452;
+      --warn-bg:   #322710;
+      --crit:      #E3776A;
+      --crit-bg:   #37191A;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg:        #0E1017;
+    --surface:   #161A24;
+    --surface-2: #1D222E;
+    --ink:       #E7EAF2;
+    --ink-2:     #C0C6D6;
+    --muted:     #8B93A7;
+    --rule:      #29303F;
+    --rule-soft: #212734;
+    --brand:     #8B9DE8;
+    --brand-ink: #A9B7F1;
+    --brand-bg:  #1C2340;
+    --on-brand:  #0E1017;
+    --ok:        #4FB795;
+    --ok-bg:     #14302A;
+    --warn:      #DFA452;
+    --warn-bg:   #322710;
+    --crit:      #E3776A;
+    --crit-bg:   #37191A;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 3px; }
+
+  /* ================= shell ================= */
+
+  .app { max-width: 1180px; margin: 0 auto; padding: 0 1.1rem 5rem; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.1rem;
+    padding: 1.15rem 0 1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .wordmark { display: flex; align-items: center; gap: 0.55rem; }
+  .wordmark .glyph {
+    width: 1.6rem; height: 1.6rem;
+    border: 1.5px solid var(--brand);
+    border-radius: 4px;
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 0.8rem; font-weight: 600;
+    color: var(--brand);
+  }
+  .wordmark .name { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.012em; }
+  .wordmark .role {
+    font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+    border-left: 1px solid var(--rule); padding-left: 0.6rem; margin-left: 0.15rem;
+  }
+
+  .demo-badge {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 0.45rem;
+    font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--warn);
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 30%, transparent);
+    padding: 0.28rem 0.55rem; border-radius: 3px;
+  }
+
+  .org {
+    font-size: 0.82rem; color: var(--muted);
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .org b { color: var(--ink-2); font-weight: 600; }
+
+  nav.tabs {
+    display: flex; gap: 0.2rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 1.6rem;
+    overflow-x: auto;
+  }
+  nav.tabs button {
+    background: none; border: none;
+    padding: 0.75rem 0.85rem;
+    font-size: 0.9rem; font-weight: 500; color: var(--muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px; white-space: nowrap;
+  }
+  nav.tabs button:hover { color: var(--ink); }
+  nav.tabs button[aria-selected="true"] { color: var(--brand-ink); border-bottom-color: var(--brand); font-weight: 600; }
+  nav.tabs .count {
+    font-family: var(--mono); font-size: 0.68rem;
+    background: var(--surface-2); color: var(--muted);
+    padding: 0.05rem 0.32rem; border-radius: 3px; margin-left: 0.35rem;
+  }
+
+  /* ================= generic ================= */
+
+  .panel { display: flex; flex-direction: column; gap: 1.6rem; }
+  .panel[hidden] { display: none !important; }
+
+  h2.sec {
+    font-size: 0.68rem; font-family: var(--mono); letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); font-weight: 500;
+    margin: 0 0 0.75rem;
+  }
+  h3 { margin: 0; font-size: 0.95rem; font-weight: 600; letter-spacing: -0.005em; }
+  p { margin: 0; }
+
+  .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-family: var(--mono); font-size: 0.66rem; font-weight: 500;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 0.16rem 0.42rem; border-radius: 3px; white-space: nowrap;
+  }
+  .chip::before { content: ""; width: 0.42rem; height: 0.42rem; border-radius: 50%; background: currentColor; flex: none; }
+  .chip.ok   { color: var(--ok);   background: var(--ok-bg); }
+  .chip.warn { color: var(--warn); background: var(--warn-bg); }
+  .chip.crit { color: var(--crit); background: var(--crit-bg); }
+  .chip.info { color: var(--brand-ink); background: var(--brand-bg); }
+  .chip.mute { color: var(--muted); background: var(--surface-2); }
+
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  /* ================= KPI ================= */
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr)); gap: 0.75rem; }
+  .kpi { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 0.95rem 1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  .kpi .k { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+  .kpi .v { font-size: 2rem; font-weight: 600; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .kpi .n { font-size: 0.78rem; color: var(--muted); line-height: 1.35; }
+  .kpi.alert { border-color: color-mix(in srgb, var(--crit) 40%, var(--rule)); }
+  .kpi.alert .v { color: var(--crit); }
+
+  /* ================= readiness meters ================= */
+
+  .meters { display: flex; flex-direction: column; }
+  .meter { display: grid; grid-template-columns: 1fr auto; gap: 0.4rem 1rem; padding: 0.85rem 1rem; border-bottom: 1px solid var(--rule-soft); align-items: center; }
+  .meter:last-child { border-bottom: none; }
+  .meter .lbl { font-size: 0.88rem; font-weight: 500; }
+  .meter .lbl small { display: block; font-family: var(--mono); font-size: 0.66rem; color: var(--muted); letter-spacing: 0.04em; margin-top: 0.15rem; font-weight: 400; }
+  .meter .pct { font-family: var(--mono); font-size: 0.88rem; font-variant-numeric: tabular-nums; text-align: right; }
+  .track { grid-column: 1 / -1; height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+  .track > i { display: block; height: 100%; border-radius: 3px; }
+  .track > i.ok { background: var(--ok); }
+  .track > i.warn { background: var(--warn); }
+  .track > i.crit { background: var(--crit); }
+
+  /* ================= findings ================= */
+
+  .findings { display: flex; flex-direction: column; }
+  .finding {
+    display: grid; grid-template-columns: 0.35rem 1fr auto;
+    gap: 0 0.9rem; align-items: start;
+    padding: 0.9rem 1rem 0.9rem 0;
+    border-bottom: 1px solid var(--rule-soft);
+    background: none; border-left: none; border-right: none; border-top: none;
+    text-align: left; width: 100%;
+  }
+  .finding:last-child { border-bottom: none; }
+  .finding:hover { background: var(--surface-2); }
+  .finding .stripe { align-self: stretch; border-radius: 0 3px 3px 0; }
+  .finding .stripe.crit { background: var(--crit); }
+  .finding .stripe.warn { background: var(--warn); }
+  .finding .body { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+  .finding .ttl { font-size: 0.92rem; font-weight: 600; }
+  .finding .desc { font-size: 0.83rem; color: var(--muted); line-height: 1.45; }
+  .finding .meta { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.15rem; }
+  .finding .go { font-family: var(--mono); font-size: 0.7rem; color: var(--brand-ink); white-space: nowrap; padding-top: 0.2rem; }
+
+  /* ================= registry ================= */
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 0.9rem; }
+  .search {
+    flex: 1 1 13rem; min-width: 10rem;
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 5px;
+    padding: 0.46rem 0.65rem; font: inherit; font-size: 0.87rem; color: var(--ink);
+  }
+  .search::placeholder { color: var(--muted); }
+  .filters { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+  .filters button {
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 5px;
+    padding: 0.4rem 0.6rem; font-size: 0.8rem; color: var(--ink-2);
+  }
+  .filters button[aria-pressed="true"] { background: var(--brand-bg); border-color: color-mix(in srgb, var(--brand) 45%, transparent); color: var(--brand-ink); font-weight: 600; }
+
+  .split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  @media (max-width: 60rem) { .split { grid-template-columns: 1fr; } }
+
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 30rem; font-size: 0.85rem; }
+  thead th {
+    font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); font-weight: 500; text-align: left;
+    padding: 0.6rem 0.8rem; background: var(--surface-2); border-bottom: 1px solid var(--rule);
+  }
+  tbody td { padding: 0.62rem 0.8rem; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover td { background: var(--surface-2); }
+  tbody tr[aria-selected="true"] td { background: var(--brand-bg); }
+  tbody tr[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--brand); }
+  tbody tr:last-child td { border-bottom: none; }
+  td .nm { font-weight: 600; display: block; }
+  td .id { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+  .empty { padding: 2rem 1rem; text-align: center; color: var(--muted); font-size: 0.87rem; }
+
+  /* ---- detail ---- */
+  .detail { position: sticky; top: 1rem; padding: 1.1rem; display: flex; flex-direction: column; gap: 1rem; }
+  @media (max-width: 60rem) { .detail { position: static; } }
+  .detail .hd { display: flex; flex-direction: column; gap: 0.45rem; }
+  .detail .hd .id { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 0.05em; }
+  .detail .hd h3 { font-size: 1.08rem; }
+  .detail .chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+
+  .chain { display: flex; align-items: stretch; gap: 0.3rem; overflow-x: auto; padding-bottom: 0.2rem; }
+  .node { flex: 1 1 0; min-width: 5.2rem; border: 1px solid var(--rule); border-radius: 4px; padding: 0.5rem 0.55rem; background: var(--surface-2); display: flex; flex-direction: column; gap: 0.15rem; }
+  .node .w { font-family: var(--mono); font-size: 0.66rem; font-weight: 500; }
+  .node .s { font-size: 0.68rem; color: var(--muted); line-height: 1.3; }
+  .node.lost { border-style: dashed; border-color: var(--crit); background: var(--crit-bg); }
+  .node.lost .w { color: var(--crit); }
+  .cut { align-self: center; font-family: var(--mono); font-size: 0.8rem; color: var(--rule); }
+  .cut.x { color: var(--crit); font-weight: 600; }
+
+  dl.fields { display: grid; grid-template-columns: 8.5rem 1fr; gap: 0.5rem 0.9rem; margin: 0; font-size: 0.84rem; }
+  dl.fields dt { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); padding-top: 0.12rem; }
+  dl.fields dd { margin: 0; color: var(--ink-2); }
+  @media (max-width: 26rem) { dl.fields { grid-template-columns: 1fr; gap: 0.15rem 0; } dl.fields dd { margin-bottom: 0.4rem; } }
+
+  .gaps { display: flex; flex-direction: column; gap: 0.45rem; margin: 0; padding: 0; list-style: none; }
+  .gaps li { display: flex; gap: 0.5rem; font-size: 0.83rem; color: var(--ink-2); line-height: 1.4; }
+  .gaps .mk { font-family: var(--mono); font-size: 0.8rem; flex: none; }
+  .gaps .mk.bad { color: var(--crit); }
+  .gaps .mk.warn { color: var(--warn); }
+  .gaps .mk.good { color: var(--ok); }
+
+  .sub { border-top: 1px solid var(--rule-soft); padding-top: 0.85rem; display: flex; flex-direction: column; gap: 0.6rem; }
+  .sub > .lb { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.11em; text-transform: uppercase; color: var(--muted); }
+
+  /* ================= obligations ================= */
+
+  .oblgroup { margin-bottom: 1.2rem; }
+  .oblgroup > .src {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem 0.7rem;
+    padding: 0 0 0.55rem;
+  }
+  .oblgroup > .src .t { font-size: 0.95rem; font-weight: 600; }
+  .oblgroup > .src .d { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); letter-spacing: 0.04em; }
+
+  .obl { border-bottom: 1px solid var(--rule-soft); }
+  .obl:last-child { border-bottom: none; }
+  .obl > button {
+    width: 100%; background: none; border: none; text-align: left;
+    display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem 0.9rem;
+    align-items: center; padding: 0.8rem 1rem;
+  }
+  .obl > button:hover { background: var(--surface-2); }
+  .obl .name { font-size: 0.88rem; font-weight: 500; }
+  .obl .ev { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .obl .car { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); transition: transform .15s ease; }
+  .obl[data-open="true"] .car { transform: rotate(90deg); }
+  .obl .drawer { padding: 0 1rem 1rem 1rem; display: flex; flex-direction: column; gap: 0.7rem; }
+  .obl .drawer p { font-size: 0.84rem; color: var(--muted); line-height: 1.5; }
+  @media (max-width: 34rem) {
+    .obl > button { grid-template-columns: 1fr auto; }
+    .obl .ev { grid-column: 1 / -1; }
+  }
+
+  /* ================= evidence pack ================= */
+
+  .packgrid { display: grid; grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  @media (max-width: 56rem) { .packgrid { grid-template-columns: 1fr; } }
+
+  .form { padding: 1.1rem; display: flex; flex-direction: column; gap: 1.1rem; }
+  .field { display: flex; flex-direction: column; gap: 0.35rem; }
+  .field > label { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  select {
+    font: inherit; font-size: 0.87rem; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 5px;
+    padding: 0.45rem 0.55rem; width: 100%;
+  }
+  .checks { display: flex; flex-direction: column; gap: 0.5rem; }
+  .checks label { display: flex; gap: 0.55rem; align-items: flex-start; font-size: 0.85rem; cursor: pointer; }
+  .checks input { margin: 0.28rem 0 0; accent-color: var(--brand); flex: none; }
+  .checks .cd { display: block; font-size: 0.74rem; color: var(--muted); line-height: 1.35; }
+
+  .build {
+    background: var(--brand); color: var(--on-brand); border: none; border-radius: 5px;
+    padding: 0.62rem 0.9rem; font-size: 0.88rem; font-weight: 600;
+  }
+  .build:disabled { opacity: .5; cursor: not-allowed; }
+
+  .toc { padding: 1.1rem; display: flex; flex-direction: column; gap: 0.9rem; }
+  .toc .hd { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; justify-content: space-between; }
+  .toc ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+  .toc li {
+    display: grid; grid-template-columns: 1.9rem 1fr auto; gap: 0.6rem;
+    padding: 0.55rem 0; border-bottom: 1px solid var(--rule-soft); align-items: baseline;
+  }
+  .toc li:last-child { border-bottom: none; }
+  .toc li .n { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .toc li .t { font-size: 0.86rem; }
+  .toc li .t small { display: block; color: var(--muted); font-size: 0.74rem; line-height: 1.35; margin-top: 0.1rem; }
+  .toc li .c { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .toc li.off { opacity: .38; }
+
+  .result {
+    border: 1px solid color-mix(in srgb, var(--ok) 35%, var(--rule));
+    background: var(--ok-bg); border-radius: 6px; padding: 0.9rem 1rem;
+    display: flex; flex-direction: column; gap: 0.4rem;
+  }
+  .result .rt { font-family: var(--mono); font-size: 0.9rem; font-weight: 600; color: var(--ok); letter-spacing: 0.02em; }
+  .result .rd { font-size: 0.82rem; color: var(--ink-2); line-height: 1.45; }
+
+  .footnote {
+    font-size: 0.78rem; color: var(--muted); line-height: 1.5;
+    border-top: 1px solid var(--rule); padding-top: 1rem; margin-top: 0.5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="wordmark">
+      <span class="glyph" aria-hidden="true">J</span>
+      <span class="name">Jejak</span>
+      <span class="role">Registri agent &amp; paket bukti</span>
+    </div>
+    <span class="demo-badge">Prototipe · data contoh</span>
+    <div class="org" style="flex-basis:100%">
+      Ruang kerja: <b>PT Sinar Pendanaan Nusantara</b> · penyelenggara LPBBTI (perusahaan fiktif untuk keperluan demonstrasi) · periode berjalan <span class="mono">Agu 2026</span>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Bagian konsol">
+    <button role="tab" id="tab-ring" aria-controls="p-ring" aria-selected="true" data-panel="p-ring">Ringkasan</button>
+    <button role="tab" id="tab-reg"  aria-controls="p-reg"  aria-selected="false" data-panel="p-reg">Registri agent <span class="count">9</span></button>
+    <button role="tab" id="tab-obl"  aria-controls="p-obl"  aria-selected="false" data-panel="p-obl">Kewajiban <span class="count">9</span></button>
+    <button role="tab" id="tab-pak"  aria-controls="p-pak"  aria-selected="false" data-panel="p-pak">Paket bukti</button>
+  </nav>
+
+  <!-- ============ RINGKASAN ============ -->
+  <div class="panel" id="p-ring" role="tabpanel" aria-labelledby="tab-ring">
+
+    <div>
+      <h2 class="sec">Posisi hari ini</h2>
+      <div class="kpis">
+        <div class="kpi">
+          <span class="k">Agent &amp; otomasi</span>
+          <span class="v">9</span>
+          <span class="n">terdeteksi di 6 sistem</span>
+        </div>
+        <div class="kpi alert">
+          <span class="k">Atribusi putus</span>
+          <span class="v">4</span>
+          <span class="n">tindakan tidak bisa dilacak ke manusia</span>
+        </div>
+        <div class="kpi alert">
+          <span class="k">Tanpa pemilik risiko</span>
+          <span class="v">3</span>
+          <span class="n">termasuk 1 agent bayangan</span>
+        </div>
+        <div class="kpi">
+          <span class="k">Kesiapan bukti</span>
+          <span class="v">46<span style="font-size:1.1rem">%</span></span>
+          <span class="n">rata-rata tiga sumber kewajiban</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h2 class="sec">Kesiapan per sumber kewajiban</h2>
+      <div class="card meters">
+        <div class="meter">
+          <span class="lbl">PADK OJK 1/2026<small>Penyelenggaraan TI oleh bank umum · rujukan sektoral</small></span>
+          <span class="pct">52%</span>
+          <span class="track"><i class="warn" style="width:52%"></i></span>
+        </div>
+        <div class="meter">
+          <span class="lbl">UU PDP No. 27/2022<small>Sanksi administratif hingga 2% pendapatan tahunan</small></span>
+          <span class="pct">61%</span>
+          <span class="track"><i class="warn" style="width:61%"></i></span>
+        </div>
+        <div class="meter">
+          <span class="lbl">Panduan Tata Kelola AI OJK 2025<small>Akuntabilitas · pengawasan manusia · keandalan</small></span>
+          <span class="pct">24%</span>
+          <span class="track"><i class="crit" style="width:24%"></i></span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h2 class="sec">Temuan prioritas</h2>
+      <div class="card findings" id="findings"></div>
+    </div>
+
+    <p class="footnote">
+      Seluruh angka, nama sistem, dan nama perusahaan di layar ini adalah data contoh untuk demonstrasi produk. Konsol yang sebenarnya membaca inventaris dari sistem klien dan tidak pernah menyalin isi data nasabah keluar dari lingkungan klien.
+    </p>
+  </div>
+
+  <!-- ============ REGISTRI ============ -->
+  <div class="panel" id="p-reg" role="tabpanel" aria-labelledby="tab-reg" hidden>
+    <div>
+      <div class="toolbar">
+        <input class="search" id="q" type="search" placeholder="Cari agent, sistem, atau pemilik…" aria-label="Cari agent">
+        <div class="filters" id="filters">
+          <button data-f="all" aria-pressed="true">Semua</button>
+          <button data-f="broken" aria-pressed="false">Atribusi putus</button>
+          <button data-f="noowner" aria-pressed="false">Tanpa pemilik</button>
+          <button data-f="shadow" aria-pressed="false">Bayangan</button>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="card tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Agent</th>
+                <th scope="col">Data pribadi</th>
+                <th scope="col">Pemilik risiko</th>
+                <th scope="col">Atribusi</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+          <div class="empty" id="noresult" hidden>Tidak ada agent yang cocok dengan filter ini.</div>
+        </div>
+
+        <aside class="card detail" id="detail" aria-live="polite"></aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ KEWAJIBAN ============ -->
+  <div class="panel" id="p-obl" role="tabpanel" aria-labelledby="tab-obl" hidden>
+    <div id="obligations"></div>
+    <p class="footnote">
+      Pemetaan ini adalah interpretasi kerja, bukan nasihat hukum. Rujukan pasal dan status kesiapan wajib ditinjau bersama satuan kerja kepatuhan sebelum dipakai dalam pelaporan resmi.
+    </p>
+  </div>
+
+  <!-- ============ PAKET BUKTI ============ -->
+  <div class="panel" id="p-pak" role="tabpanel" aria-labelledby="tab-pak" hidden>
+    <div class="packgrid">
+      <div class="card form">
+        <div class="field">
+          <label for="periode">Periode</label>
+          <select id="periode">
+            <option>Triwulan III 2026 (Jul–Sep)</option>
+            <option selected>Agustus 2026</option>
+            <option>Semester I 2026</option>
+            <option>Sejak inventarisasi awal</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="penerima">Ditujukan kepada</label>
+          <select id="penerima">
+            <option selected>Pemeriksaan OJK</option>
+            <option>Audit internal</option>
+            <option>Kantor akuntan publik</option>
+            <option>Uji tuntas mitra pendana</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Lingkup bukti</label>
+          <div class="checks" id="scope"></div>
+        </div>
+
+        <button class="build" id="build">Susun paket bukti</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="card toc">
+          <div class="hd">
+            <h3>Daftar isi paket</h3>
+            <span class="mono" style="font-size:.74rem;color:var(--muted)" id="tocmeta"></span>
+          </div>
+          <ol id="toc"></ol>
+        </div>
+        <div id="buildresult"></div>
+      </div>
+    </div>
+
+    <p class="footnote">
+      Dalam prototipe ini penyusunan paket disimulasikan dan berkas tidak benar-benar dihasilkan. Pada produk sebenarnya, paket keluar sebagai satu arsip PDF bertanda waktu berikut lampiran sumbernya, dan setiap versi disimpan agar dapat dibandingkan antarperiode pemeriksaan.
+    </p>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------- data (contoh) ---------------- */
+
+  var AGENTS = [
+    {
+      id: "AGT-001", nama: "Skoring Kredit Otomatis", sistem: "Loan Origination · model internal",
+      pd: "Data identitas, penghasilan, riwayat pinjaman", pdLevel: "tinggi",
+      pemilik: "—", pemilikUnit: null, atribusi: "putus", shadow: false,
+      kredensial: "SVC_SCORING (service account bersama, 3 sistem)",
+      dasar: "Persetujuan pada formulir pengajuan",
+      dpia: "Belum ada",
+      chain: ["Nasabah", "Petugas kredit", "Agent", "Basis data nasabah"],
+      chainDesc: ["Memberi persetujuan", "Meneruskan pengajuan", "Memakai akun bersama", "Menulis 4.180 record"],
+      breakFrom: 2,
+      gaps: [
+        ["bad", "Tindakan tidak dapat ditelusuri ke petugas yang menugaskan — akun bersama memutus atribusi."],
+        ["bad", "Belum ada DPIA padahal memproses data pribadi untuk keputusan berdampak hukum."],
+        ["warn", "Tidak ada pemilik risiko yang ditunjuk untuk keputusan model."],
+        ["warn", "Jalur eskalasi ke manusia belum terdokumentasi."]
+      ]
+    },
+    {
+      id: "AGT-002", nama: "Asisten Penagihan WhatsApp", sistem: "Collection Hub · vendor pesan",
+      pd: "Nomor telepon, tunggakan, kontak darurat", pdLevel: "tinggi",
+      pemilik: "Kepala Collection", pemilikUnit: "Operasional", atribusi: "sebagian", shadow: false,
+      kredensial: "Token API per kampanye",
+      dasar: "Pelaksanaan perjanjian pinjaman",
+      dpia: "Draf, belum disetujui",
+      chain: ["Nasabah", "Petugas collection", "Agent", "Gateway pesan"],
+      chainDesc: ["Terikat perjanjian", "Menyetujui kampanye", "Menyusun & mengirim pesan", "Mengirim 12.400 pesan"],
+      breakFrom: 3,
+      gaps: [
+        ["warn", "Atribusi berhenti di tingkat kampanye, belum sampai per pesan."],
+        ["warn", "DPIA masih draf; kontak darurat termasuk data pihak ketiga."],
+        ["good", "Batas jam pengiriman dan naskah pesan sudah dibatasi kebijakan."]
+      ]
+    },
+    {
+      id: "AGT-003", nama: "Verifikasi Dokumen &amp; OCR KTP", sistem: "Onboarding · penyedia pihak ketiga",
+      pd: "NIK, foto KTP, swafoto", pdLevel: "tinggi",
+      pemilik: "Kepala Operasional", pemilikUnit: "Operasional", atribusi: "sebagian", shadow: false,
+      kredensial: "Kunci API vendor (rotasi tahunan)",
+      dasar: "Kewajiban hukum — uji tuntas nasabah",
+      dpia: "Ada, ditinjau Feb 2026",
+      chain: ["Nasabah", "Sistem onboarding", "Agent vendor", "Basis data KYC"],
+      chainDesc: ["Mengunggah dokumen", "Meneruskan berkas", "Mengekstraksi & mencocokkan", "Menyimpan hasil"],
+      breakFrom: 3,
+      gaps: [
+        ["bad", "Kontrak penyedia jasa TI belum memuat klausul hak audit OJK."],
+        ["warn", "Penilaian risiko vendor terakhir dilakukan sebelum fitur AI ditambahkan."],
+        ["good", "DPIA tersedia dan masih berlaku."]
+      ]
+    },
+    {
+      id: "AGT-004", nama: "Chatbot Layanan Nasabah", sistem: "Portal &amp; aplikasi nasabah",
+      pd: "Riwayat percakapan, nomor kontrak", pdLevel: "sedang",
+      pemilik: "Kepala Layanan", pemilikUnit: "Layanan nasabah", atribusi: "utuh", shadow: false,
+      kredensial: "Identitas layanan khusus, tanpa akses tulis",
+      dasar: "Persetujuan pada kanal layanan",
+      dpia: "Tidak diperlukan (risiko rendah)",
+      chain: ["Nasabah", "Portal", "Agent", "Basis pengetahuan"],
+      chainDesc: ["Memulai percakapan", "Meneruskan sesi", "Menjawab, tanpa akses tulis", "Hanya baca"],
+      breakFrom: -1,
+      gaps: [
+        ["good", "Pemberitahuan bahwa lawan bicara adalah sistem AI sudah tampil di awal sesi."],
+        ["good", "Eskalasi ke agen manusia tercatat lengkap."],
+        ["warn", "Retensi transkrip belum diselaraskan dengan kebijakan penyimpanan."]
+      ]
+    },
+    {
+      id: "AGT-005", nama: "Deteksi Fraud Lintas Tabel", sistem: "Risk Engine",
+      pd: "Perangkat, lokasi, pola transaksi", pdLevel: "tinggi",
+      pemilik: "—", pemilikUnit: null, atribusi: "putus", shadow: false,
+      kredensial: "SVC_RISK (akses baca lintas 9 tabel)",
+      dasar: "Kepentingan sah pengendali",
+      dpia: "Belum ada",
+      chain: ["Nasabah", "Sistem transaksi", "Agent", "9 tabel produksi"],
+      chainDesc: ["Bertransaksi", "Memicu evaluasi", "Menilai & memblokir", "Membaca lintas tabel"],
+      breakFrom: 2,
+      gaps: [
+        ["bad", "Pemblokiran otomatis tanpa jalur peninjauan manusia yang tercatat."],
+        ["bad", "Cakupan akses baca melampaui kebutuhan fungsi."],
+        ["warn", "Tidak ada pemilik risiko yang ditunjuk."]
+      ]
+    },
+    {
+      id: "AGT-006", nama: "Rekonsiliasi Pembayaran", sistem: "Ledger · batch harian",
+      pd: "Tidak menyentuh data pribadi", pdLevel: "rendah",
+      pemilik: "Kepala Keuangan", pemilikUnit: "Keuangan", atribusi: "utuh", shadow: false,
+      kredensial: "Akun batch khusus, hanya jam 01.00–03.00",
+      dasar: "Tidak berlaku",
+      dpia: "Tidak diperlukan",
+      chain: ["Penjadwal", "Agent", "Ledger", "—"],
+      chainDesc: ["Memicu batch", "Mencocokkan transaksi", "Menulis jurnal", "—"],
+      breakFrom: -1,
+      gaps: [
+        ["good", "Cakupan sempit, jendela waktu terbatas, tidak menyentuh data pribadi."],
+        ["good", "Selisih rekonsiliasi otomatis dieskalasi ke petugas."]
+      ]
+    },
+    {
+      id: "AGT-007", nama: "Asisten Analis (tidak terdaftar)", sistem: "Alat LLM publik · terdeteksi dari log jaringan",
+      pd: "Potensi tempelan data nasabah", pdLevel: "tinggi",
+      pemilik: "—", pemilikUnit: null, atribusi: "putus", shadow: true,
+      kredensial: "Akun pribadi karyawan",
+      dasar: "Tidak ada",
+      dpia: "Tidak ada",
+      chain: ["Analis", "Alat publik", "?", "?"],
+      chainDesc: ["Menempelkan data", "Memproses di luar lingkungan", "Tujuan tidak diketahui", "Tidak terpantau"],
+      breakFrom: 1,
+      gaps: [
+        ["bad", "Pemrosesan data pribadi di luar lingkungan yang dikendalikan perusahaan."],
+        ["bad", "Tidak ada dasar pemrosesan, tidak ada catatan, tidak ada kendali retensi."],
+        ["bad", "Terdeteksi lewat log jaringan, bukan lewat pendaftaran — kemungkinan ada yang serupa."]
+      ]
+    },
+    {
+      id: "AGT-008", nama: "Penyusun Laporan Berkala", sistem: "Pelaporan regulator",
+      pd: "Data agregat", pdLevel: "rendah",
+      pemilik: "Kepala Kepatuhan", pemilikUnit: "Kepatuhan", atribusi: "utuh", shadow: false,
+      kredensial: "Identitas layanan, hanya baca gudang data",
+      dasar: "Kewajiban hukum",
+      dpia: "Tidak diperlukan",
+      chain: ["Kepatuhan", "Agent", "Gudang data", "Berkas laporan"],
+      chainDesc: ["Menugaskan penyusunan", "Menarik & menyusun", "Hanya baca agregat", "Diperiksa manusia"],
+      breakFrom: -1,
+      gaps: [
+        ["good", "Keluaran selalu ditinjau dan ditandatangani manusia sebelum dikirim."],
+        ["warn", "Versi model yang dipakai belum dicatat di setiap laporan."]
+      ]
+    },
+    {
+      id: "AGT-009", nama: "Penyaring Prospek Pemasaran", sistem: "CRM · segmentasi",
+      pd: "Data kontak, skor kelayakan", pdLevel: "sedang",
+      pemilik: "Kepala Pemasaran", pemilikUnit: "Pemasaran", atribusi: "sebagian", shadow: false,
+      kredensial: "Token CRM tingkat tim",
+      dasar: "Persetujuan pemasaran",
+      dpia: "Belum ada",
+      chain: ["Calon nasabah", "Petugas pemasaran", "Agent", "CRM"],
+      chainDesc: ["Memberi persetujuan", "Menjalankan segmentasi", "Menyaring & menilai", "Memperbarui segmen"],
+      breakFrom: 3,
+      gaps: [
+        ["warn", "Penarikan persetujuan pemasaran belum otomatis mengeluarkan prospek dari segmen."],
+        ["warn", "Belum ada DPIA untuk penilaian otomatis."]
+      ]
+    }
+  ];
+
+  var FINDINGS = [
+    {
+      sev: "crit", ttl: "Agent bayangan memproses data nasabah di luar lingkungan perusahaan",
+      desc: "Terdeteksi dari log jaringan, bukan dari pendaftaran. Tidak ada dasar pemrosesan, tidak ada kendali retensi, dan kemungkinan besar bukan satu-satunya.",
+      tags: ["UU PDP Pasal 20", "AGT-007"], agent: "AGT-007"
+    },
+    {
+      sev: "crit", ttl: "Empat agent berjalan dengan akun bersama sehingga atribusi putus",
+      desc: "Log mencatat nama akun layanan, bukan manusia yang menugaskan. Pertanyaan pemeriksa “siapa yang menyetujui tindakan ini” tidak punya jawaban.",
+      tags: ["Panduan AI OJK · akuntabilitas", "4 agent"], agent: "AGT-001"
+    },
+    {
+      sev: "crit", ttl: "Kontrak penyedia jasa TI tanpa klausul hak audit regulator",
+      desc: "Dua dari lima kontrak vendor yang menjalankan komponen AI belum memuat hak akses audit, kewajiban pelaporan kejadian, dan pengaturan pengakhiran.",
+      tags: ["PADK OJK 1/2026", "AGT-003"], agent: "AGT-003"
+    },
+    {
+      sev: "warn", ttl: "Keputusan otomatis berdampak tinggi tanpa jalur peninjauan manusia",
+      desc: "Pemblokiran transaksi dan penolakan pengajuan berjalan otomatis tanpa titik eskalasi yang tercatat, sehingga hak subjek data atas peninjauan sulit dibuktikan.",
+      tags: ["UU PDP · hak subjek data", "AGT-005"], agent: "AGT-005"
+    },
+    {
+      sev: "warn", ttl: "Lima agent berisiko tinggi belum memiliki DPIA",
+      desc: "Penilaian dampak pelindungan data belum disusun untuk pemrosesan yang menghasilkan keputusan berdampak hukum bagi nasabah.",
+      tags: ["PADK OJK 1/2026 · tata kelola data", "5 agent"], agent: "AGT-001"
+    }
+  ];
+
+  var OBLIGATIONS = [
+    {
+      src: "PADK OJK 1/2026", note: "Berlaku 1 Maret 2026 · penyelenggaraan TI oleh bank umum",
+      items: [
+        { n: "Dokumentasi penyedia jasa TI: seleksi, penilaian risiko, evaluasi kinerja", st: "warn", ev: "3/5",
+          d: "Tiga dari lima vendor yang menjalankan komponen AI sudah terdokumentasi lengkap. Dua sisanya belum memuat penilaian risiko ulang setelah fitur AI ditambahkan." },
+        { n: "Klausul hak audit regulator dan pelaporan kejadian dalam kontrak vendor", st: "crit", ev: "3/5",
+          d: "Dua kontrak perlu adendum. Ini temuan paling cepat diperbaiki dan paling sering ditanyakan pemeriksa." },
+        { n: "Arsitektur TI: perencanaan, desain, implementasi, evaluasi berkala", st: "warn", ev: "2/4",
+          d: "Diagram arsitektur belum memasukkan agent sebagai komponen tersendiri, sehingga aliran data lewat agent tidak terlihat pada dokumen resmi." },
+        { n: "Tata kelola dan pelindungan data, termasuk DPIA untuk pemrosesan berisiko tinggi", st: "crit", ev: "1/6",
+          d: "Lima agent berisiko tinggi belum memiliki DPIA. Satu tersedia dan masih berlaku." },
+        { n: "Pelaporan kejadian TI: notifikasi 24 jam, laporan lengkap 5 hari kerja", st: "ok", ev: "4/4",
+          d: "Prosedur sudah ada dan diuji. Perlu satu penyesuaian: definisi kejadian belum mencakup perilaku agent yang menyimpang tanpa gangguan layanan." }
+      ]
+    },
+    {
+      src: "UU PDP No. 27/2022", note: "Masa transisi berakhir Oktober 2024 · sanksi administratif hingga 2% pendapatan tahunan",
+      items: [
+        { n: "Dasar pemrosesan yang sah dan persetujuan eksplisit", st: "warn", ev: "6/9",
+          d: "Tiga agent memproses tanpa dasar yang terdokumentasi, termasuk satu agent bayangan yang sama sekali tidak punya dasar." },
+        { n: "Hak subjek data atas keputusan otomatis: penjelasan, koreksi, peninjauan", st: "crit", ev: "1/4",
+          d: "Belum ada mekanisme yang bisa menjelaskan kepada nasabah mengapa pengajuannya ditolak oleh model, maupun menerima permintaan peninjauan." },
+        { n: "Pencatatan kegiatan pemrosesan", st: "warn", ev: "5/9",
+          d: "Catatan tersedia di tingkat sistem, belum di tingkat agent — sehingga sulit menunjukkan apa yang dilakukan agent tertentu pada periode tertentu." }
+      ]
+    },
+    {
+      src: "Panduan Tata Kelola AI Perbankan OJK", note: "29 April 2025 · patokan minimum sektor, tanpa skema denda tersendiri",
+      items: [
+        { n: "Akuntabilitas: pemilik yang jelas untuk setiap keputusan AI", st: "crit", ev: "6/9",
+          d: "Tiga agent tanpa pemilik risiko, dua di antaranya menjalankan keputusan berdampak langsung ke nasabah." },
+        { n: "Pengawasan manusia yang bermakna pada setiap tahap", st: "crit", ev: "3/9",
+          d: "Hanya tiga agent yang punya titik eskalasi tercatat. Sisanya berjalan penuh otomatis tanpa gerbang peninjauan." },
+        { n: "Keandalan: pengujian dan evaluasi berkala model", st: "crit", ev: "1/9",
+          d: "Belum ada jadwal evaluasi berkala. Satu model diuji ulang setahun lalu, tanpa dokumentasi hasil yang tersimpan." }
+      ]
+    }
+  ];
+
+  var SCOPE = [
+    { id: "s1", t: "Daftar Induk Agent & AI", d: "Inventaris seluruh agent, sistem, dan kredensial pada periode terpilih", c: "9 agent", on: true },
+    { id: "s2", t: "Peta agent → sistem → data pribadi", d: "Aliran data pribadi yang disentuh setiap agent", c: "6 sistem", on: true },
+    { id: "s3", t: "Register pemilik risiko & jalur eskalasi", d: "Siapa bertanggung jawab, dan ke mana keputusan dieskalasi", c: "6 pemilik", on: true },
+    { id: "s4", t: "Ringkasan DPIA agent berisiko tinggi", d: "Termasuk daftar yang belum disusun, berikut rencana penyelesaian", c: "1 ada · 5 kurang", on: true },
+    { id: "s5", t: "Klausul hak audit pada kontrak penyedia jasa TI", d: "Salinan klausul dan status adendum per vendor", c: "5 vendor", on: true },
+    { id: "s6", t: "Ringkasan tindakan agent pada periode", d: "Volume tindakan, jenis, dan penugas manusia bila teratribusi", c: "≈ 61.000 tindakan", on: true },
+    { id: "s7", t: "Register temuan & rencana perbaikan", d: "Temuan terbuka, tingkat keparahan, penanggung jawab, tenggat", c: "11 temuan", on: true },
+    { id: "s8", t: "Riwayat kejadian dan waktu pelaporan", d: "Bukti pemenuhan notifikasi 24 jam dan laporan 5 hari kerja", c: "2 kejadian", on: false },
+    { id: "s9", t: "Lembar pengesahan pemilik risiko", d: "Halaman tanda tangan per unit kerja untuk penyerahan resmi", c: "6 lembar", on: true }
+  ];
+
+  /* ---------------- helpers ---------------- */
+
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var el = function (tag, cls, html) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (html != null) n.innerHTML = html;
+    return n;
+  };
+
+  var ATTR_LABEL = { putus: ["crit", "Putus"], sebagian: ["warn", "Sebagian"], utuh: ["ok", "Utuh"] };
+  var ST_LABEL = { ok: ["ok", "Lengkap"], warn: ["warn", "Sebagian"], crit: ["crit", "Kosong"] };
+
+  /* ---------------- tabs ---------------- */
+
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('nav.tabs button'));
+  function showTab(id) {
+    tabs.forEach(function (t) {
+      var on = t.dataset.panel === id;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      document.getElementById(t.dataset.panel).hidden = !on;
+    });
+  }
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () { showTab(t.dataset.panel); });
+  });
+
+  /* ---------------- findings ---------------- */
+
+  var fWrap = $('#findings');
+  FINDINGS.forEach(function (f) {
+    var b = el('button', 'finding');
+    b.type = 'button';
+    b.innerHTML =
+      '<span class="stripe ' + f.sev + '"></span>' +
+      '<span class="body">' +
+        '<span class="ttl">' + f.ttl + '</span>' +
+        '<span class="desc">' + f.desc + '</span>' +
+        '<span class="meta">' + f.tags.map(function (t) {
+          return '<span class="chip mute">' + t + '</span>';
+        }).join('') + '</span>' +
+      '</span>' +
+      '<span class="go">Buka →</span>';
+    b.addEventListener('click', function () {
+      showTab('p-reg');
+      select(f.agent);
+      var row = document.querySelector('tr[data-id="' + f.agent + '"]');
+      if (row) row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
+    fWrap.appendChild(b);
+  });
+
+  /* ---------------- registry ---------------- */
+
+  var state = { filter: 'all', q: '', sel: 'AGT-007' };
+
+  function matches(a) {
+    if (state.filter === 'broken' && a.atribusi !== 'putus') return false;
+    if (state.filter === 'noowner' && a.pemilik !== '—') return false;
+    if (state.filter === 'shadow' && !a.shadow) return false;
+    if (state.q) {
+      var hay = (a.id + ' ' + a.nama + ' ' + a.sistem + ' ' + a.pemilik).toLowerCase();
+      if (hay.indexOf(state.q.toLowerCase()) === -1) return false;
+    }
+    return true;
+  }
+
+  function renderRows() {
+    var tb = $('#rows');
+    tb.innerHTML = '';
+    var list = AGENTS.filter(matches);
+    $('#noresult').hidden = list.length > 0;
+    list.forEach(function (a) {
+      var tr = el('tr');
+      tr.dataset.id = a.id;
+      tr.setAttribute('aria-selected', a.id === state.sel ? 'true' : 'false');
+      var at = ATTR_LABEL[a.atribusi];
+      tr.innerHTML =
+        '<td><span class="nm">' + a.nama + (a.shadow ? ' <span class="chip crit">Bayangan</span>' : '') + '</span>' +
+          '<span class="id">' + a.id + ' · ' + a.sistem + '</span></td>' +
+        '<td>' + a.pd + '</td>' +
+        '<td>' + (a.pemilik === '—'
+            ? '<span class="chip crit">Belum ada</span>'
+            : a.pemilik + '<span class="id" style="display:block">' + a.pemilikUnit + '</span>') + '</td>' +
+        '<td><span class="chip ' + at[0] + '">' + at[1] + '</span></td>';
+      tr.addEventListener('click', function () { select(a.id); });
+      tb.appendChild(tr);
+    });
+  }
+
+  function renderDetail() {
+    var a = null;
+    for (var i = 0; i < AGENTS.length; i++) if (AGENTS[i].id === state.sel) a = AGENTS[i];
+    var d = $('#detail');
+    if (!a) { d.innerHTML = '<p class="empty">Pilih satu agent untuk melihat rinciannya.</p>'; return; }
+
+    var at = ATTR_LABEL[a.atribusi];
+
+    var chain = a.chain.map(function (w, i) {
+      var lost = a.breakFrom >= 0 && i >= a.breakFrom;
+      var node = '<span class="node' + (lost ? ' lost' : '') + '">' +
+        '<span class="w">' + w + '</span><span class="s">' + a.chainDesc[i] + '</span></span>';
+      if (i === a.chain.length - 1) return node;
+      var cut = (a.breakFrom >= 0 && i + 1 >= a.breakFrom);
+      return node + '<span class="cut' + (cut ? ' x' : '') + '" aria-hidden="true">' + (cut ? '⇢' : '→') + '</span>';
+    }).join('');
+
+    d.innerHTML =
+      '<div class="hd">' +
+        '<span class="id">' + a.id + '</span>' +
+        '<h3>' + a.nama + '</h3>' +
+        '<div class="chips">' +
+          '<span class="chip ' + at[0] + '">Atribusi ' + at[1] + '</span>' +
+          '<span class="chip ' + (a.pdLevel === 'tinggi' ? 'crit' : a.pdLevel === 'sedang' ? 'warn' : 'mute') + '">Data pribadi ' + a.pdLevel + '</span>' +
+          (a.shadow ? '<span class="chip crit">Tidak terdaftar</span>' : '<span class="chip info">Terdaftar</span>') +
+        '</div>' +
+      '</div>' +
+
+      '<div class="sub"><span class="lb">Rantai atribusi</span>' +
+        '<div class="chain">' + chain + '</div>' +
+        (a.breakFrom >= 0
+          ? '<p style="font-size:.78rem;color:var(--crit);font-family:var(--mono)">Jejak ke manusia hilang mulai simpul ke-' + (a.breakFrom + 1) + '.</p>'
+          : '<p style="font-size:.78rem;color:var(--ok);font-family:var(--mono)">Setiap tindakan dapat ditelusuri kembali ke manusia penugas.</p>') +
+      '</div>' +
+
+      '<div class="sub"><span class="lb">Rincian</span>' +
+        '<dl class="fields">' +
+          '<dt>Sistem</dt><dd>' + a.sistem + '</dd>' +
+          '<dt>Kredensial</dt><dd>' + a.kredensial + '</dd>' +
+          '<dt>Pemilik risiko</dt><dd>' + (a.pemilik === '—' ? 'Belum ditunjuk' : a.pemilik + ' · ' + a.pemilikUnit) + '</dd>' +
+          '<dt>Dasar pemrosesan</dt><dd>' + a.dasar + '</dd>' +
+          '<dt>DPIA</dt><dd>' + a.dpia + '</dd>' +
+        '</dl>' +
+      '</div>' +
+
+      '<div class="sub"><span class="lb">Gap terhadap kewajiban</span>' +
+        '<ul class="gaps">' + a.gaps.map(function (g) {
+          var mk = g[0] === 'bad' ? '✕' : g[0] === 'warn' ? '!' : '✓';
+          return '<li><span class="mk ' + (g[0] === 'bad' ? 'bad' : g[0] === 'warn' ? 'warn' : 'good') + '">' + mk + '</span><span>' + g[1] + '</span></li>';
+        }).join('') + '</ul>' +
+      '</div>';
+  }
+
+  function select(id) { state.sel = id; renderRows(); renderDetail(); }
+
+  $('#q').addEventListener('input', function (e) { state.q = e.target.value; renderRows(); });
+  $('#filters').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    state.filter = b.dataset.f;
+    Array.prototype.forEach.call(this.querySelectorAll('button'), function (x) {
+      x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+    });
+    renderRows();
+  });
+
+  renderRows();
+  renderDetail();
+
+  /* ---------------- obligations ---------------- */
+
+  var ow = $('#obligations');
+  OBLIGATIONS.forEach(function (g) {
+    var wrap = el('div', 'oblgroup');
+    wrap.innerHTML = '<div class="src"><span class="t">' + g.src + '</span><span class="d">' + g.note + '</span></div>';
+    var card = el('div', 'card');
+    g.items.forEach(function (it) {
+      var st = ST_LABEL[it.st];
+      var row = el('div', 'obl');
+      row.dataset.open = 'false';
+      var btn = el('button');
+      btn.type = 'button';
+      btn.setAttribute('aria-expanded', 'false');
+      btn.innerHTML =
+        '<span class="name">' + it.n + '</span>' +
+        '<span class="ev">bukti ' + it.ev + '</span>' +
+        '<span style="display:flex;gap:.6rem;align-items:center"><span class="chip ' + st[0] + '">' + st[1] + '</span><span class="car">▶</span></span>';
+      var drawer = el('div', 'drawer', '<p>' + it.d + '</p>');
+      drawer.hidden = true;
+      btn.addEventListener('click', function () {
+        var open = row.dataset.open === 'true';
+        row.dataset.open = open ? 'false' : 'true';
+        btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+        drawer.hidden = open;
+      });
+      row.appendChild(btn);
+      row.appendChild(drawer);
+      card.appendChild(row);
+    });
+    wrap.appendChild(card);
+    ow.appendChild(wrap);
+  });
+
+  /* ---------------- evidence pack ---------------- */
+
+  var scopeWrap = $('#scope');
+  SCOPE.forEach(function (s) {
+    var lab = el('label');
+    lab.innerHTML =
+      '<input type="checkbox" id="' + s.id + '"' + (s.on ? ' checked' : '') + '>' +
+      '<span><span>' + s.t + '</span><span class="cd">' + s.d + '</span></span>';
+    lab.querySelector('input').addEventListener('change', function (e) {
+      s.on = e.target.checked;
+      renderToc();
+    });
+    scopeWrap.appendChild(lab);
+  });
+
+  function renderToc() {
+    var ol = $('#toc');
+    ol.innerHTML = '';
+    var n = 0;
+    SCOPE.forEach(function (s) {
+      var li = el('li', s.on ? '' : 'off');
+      if (s.on) n++;
+      li.innerHTML =
+        '<span class="n">' + (s.on ? String(n).padStart(2, '0') : '—') + '</span>' +
+        '<span class="t">' + s.t + '<small>' + s.d + '</small></span>' +
+        '<span class="c">' + s.c + '</span>';
+      ol.appendChild(li);
+    });
+    $('#tocmeta').textContent = n + ' dari ' + SCOPE.length + ' bagian dipilih';
+    $('#build').disabled = n === 0;
+  }
+  renderToc();
+
+  $('#build').addEventListener('click', function () {
+    var btn = this;
+    var out = $('#buildresult');
+    btn.disabled = true;
+    btn.textContent = 'Menyusun…';
+    out.innerHTML = '';
+    setTimeout(function () {
+      var n = SCOPE.filter(function (s) { return s.on; }).length;
+      var box = el('div', 'result');
+      box.innerHTML =
+        '<span class="rt">PB-2026-08-014 tersusun</span>' +
+        '<span class="rd">' + n + ' bagian · 47 lampiran · ditujukan kepada ' +
+        $('#penerima').value.toLowerCase() + ' · periode ' + $('#periode').value + '. ' +
+        'Paket ditandatangani secara digital dan dikunci pada versi ini, sehingga isinya dapat dibandingkan dengan paket periode sebelumnya.</span>' +
+        '<span class="rd" style="color:var(--muted)">Dalam prototipe, berkas tidak benar-benar dihasilkan dan tombol unduh dinonaktifkan.</span>';
+      out.appendChild(box);
+      btn.disabled = false;
+      btn.textContent = 'Susun ulang paket';
+    }, 900);
+  });
+
+})();
+</script>
+</body>
+</html>

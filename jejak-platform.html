@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Prototipe control plane agent AI: identitas, kebijakan, otorisasi runtime, deteksi, dan bukti regulator.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%A1%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<title>Jejak Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root { color-scheme: light dark; }
+  html, body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<style>
+  :root {
+    --bg:        #F4F6FA;
+    --surface:   #FFFFFF;
+    --surface-2: #EDF0F6;
+    --surface-3: #E3E8F1;
+    --side:      #10141F;
+    --side-2:    #1A2030;
+    --side-ink:  #C9D1E4;
+    --side-mute: #7A85A0;
+    --ink:       #141824;
+    --ink-2:     #394052;
+    --muted:     #68708A;
+    --rule:      #DCE1EC;
+    --rule-soft: #E9ECF4;
+    --brand:     #3B4E9B;
+    --brand-ink: #2B3B7C;
+    --brand-bg:  #E6EAF8;
+    --on-brand:  #FFFFFF;
+    --ok:        #16745B;
+    --ok-bg:     #E1F0EA;
+    --warn:      #8E5D08;
+    --warn-bg:   #F8EEDA;
+    --crit:      #A02D24;
+    --crit-bg:   #F9E5E2;
+    --info:      #2A5E8F;
+    --info-bg:   #E2EDF6;
+
+    --sans: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #0C0F17;
+      --surface:   #141926;
+      --surface-2: #1B2130;
+      --surface-3: #232A3B;
+      --side:      #090C13;
+      --side-2:    #141A28;
+      --side-ink:  #C3CBDE;
+      --side-mute: #6F7994;
+      --ink:       #E6EAF3;
+      --ink-2:     #BEC5D6;
+      --muted:     #8992A9;
+      --rule:      #272E3E;
+      --rule-soft: #1F2533;
+      --brand:     #8A9CE8;
+      --brand-ink: #A7B5F0;
+      --brand-bg:  #1B2240;
+      --on-brand:  #0C0F17;
+      --ok:        #4EB694;
+      --ok-bg:     #122E28;
+      --warn:      #DDA351;
+      --warn-bg:   #30260F;
+      --crit:      #E2756A;
+      --crit-bg:   #351819;
+      --info:      #6BA6DA;
+      --info-bg:   #10263A;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg:        #0C0F17;
+    --surface:   #141926;
+    --surface-2: #1B2130;
+    --surface-3: #232A3B;
+    --side:      #090C13;
+    --side-2:    #141A28;
+    --side-ink:  #C3CBDE;
+    --side-mute: #6F7994;
+    --ink:       #E6EAF3;
+    --ink-2:     #BEC5D6;
+    --muted:     #8992A9;
+    --rule:      #272E3E;
+    --rule-soft: #1F2533;
+    --brand:     #8A9CE8;
+    --brand-ink: #A7B5F0;
+    --brand-bg:  #1B2240;
+    --on-brand:  #0C0F17;
+    --ok:        #4EB694;
+    --ok-bg:     #122E28;
+    --warn:      #DDA351;
+    --warn-bg:   #30260F;
+    --crit:      #E2756A;
+    --crit-bg:   #351819;
+    --info:      #6BA6DA;
+    --info-bg:   #10263A;
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14.5px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 3px; }
+  p { margin: 0; }
+  h1, h2, h3 { margin: 0; }
+
+  /* ================= shell ================= */
+
+  .shell { display: grid; grid-template-columns: 15.5rem minmax(0, 1fr); min-height: 100vh; }
+  @media (max-width: 60rem) { .shell { grid-template-columns: 1fr; } }
+
+  aside.side {
+    background: var(--side);
+    color: var(--side-ink);
+    display: flex; flex-direction: column;
+    border-right: 1px solid rgba(255,255,255,.06);
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  @media (max-width: 60rem) { aside.side { position: static; height: auto; } }
+
+  .brand { display: flex; align-items: center; gap: .6rem; padding: 1.05rem 1.1rem; border-bottom: 1px solid rgba(255,255,255,.07); }
+  .brand .mk { width: 1.7rem; height: 1.7rem; border-radius: 5px; background: var(--brand); color: #fff; display: grid; place-items: center; font-family: var(--mono); font-weight: 600; font-size: .82rem; flex: none; }
+  .brand .nm { font-weight: 700; font-size: 1.02rem; color: #fff; letter-spacing: -.01em; }
+  .brand .sf { font-family: var(--mono); font-size: .58rem; letter-spacing: .14em; text-transform: uppercase; color: var(--side-mute); display: block; margin-top: .05rem; }
+
+  .navgroups { padding: .8rem 0 1rem; display: flex; flex-direction: column; gap: .9rem; flex: 1; }
+  .navgroup > .lb { font-family: var(--mono); font-size: .58rem; letter-spacing: .16em; text-transform: uppercase; color: var(--side-mute); padding: 0 1.1rem .4rem; }
+  .navgroup > .items { display: flex; flex-direction: column; }
+  .navgroups button {
+    display: flex; align-items: center; gap: .6rem; width: 100%;
+    background: none; border: none; text-align: left;
+    padding: .48rem 1.1rem; color: var(--side-ink); font-size: .875rem;
+    border-left: 2px solid transparent;
+  }
+  .navgroups button:hover { background: var(--side-2); color: #fff; }
+  .navgroups button[aria-current="true"] { background: var(--side-2); color: #fff; border-left-color: var(--brand); font-weight: 600; }
+  .navgroups button .ic { width: 1.05rem; text-align: center; font-size: .8rem; color: var(--side-mute); flex: none; }
+  .navgroups button[aria-current="true"] .ic { color: var(--brand); }
+  .navgroups button .badge { margin-left: auto; font-family: var(--mono); font-size: .62rem; background: var(--crit); color: #fff; border-radius: 8px; padding: .02rem .32rem; }
+
+  .envbox { padding: .85rem 1.1rem; border-top: 1px solid rgba(255,255,255,.07); display: flex; flex-direction: column; gap: .3rem; }
+  .envbox .l { font-family: var(--mono); font-size: .58rem; letter-spacing: .14em; text-transform: uppercase; color: var(--side-mute); }
+  .envbox .v { font-size: .82rem; color: #fff; display: flex; align-items: center; gap: .4rem; }
+  .envbox .dot { width: .45rem; height: .45rem; border-radius: 50%; background: #4EB694; flex: none; }
+
+  @media (max-width: 60rem) {
+    .navgroups { flex-direction: row; overflow-x: auto; padding: .5rem; gap: .4rem; }
+    .navgroup > .lb { display: none; }
+    .navgroup > .items { flex-direction: row; }
+    .navgroups button { white-space: nowrap; border-left: none; border-bottom: 2px solid transparent; padding: .45rem .7rem; }
+    .navgroups button[aria-current="true"] { border-left-color: transparent; border-bottom-color: var(--brand); }
+    .envbox { display: none; }
+  }
+
+  /* ================= main ================= */
+
+  main { min-width: 0; display: flex; flex-direction: column; }
+
+  .topbar {
+    display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
+    padding: .8rem 1.3rem; background: var(--surface); border-bottom: 1px solid var(--rule);
+    position: sticky; top: 0; z-index: 5;
+  }
+  .topbar .crumb { font-family: var(--mono); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .topbar h1 { font-size: 1.02rem; font-weight: 600; letter-spacing: -.012em; }
+  .gsearch {
+    margin-left: auto; display: flex; align-items: center; gap: .45rem;
+    background: var(--surface-2); border: 1px solid var(--rule); border-radius: 6px;
+    padding: .34rem .55rem; color: var(--muted); font-size: .8rem; min-width: 13rem;
+  }
+  .gsearch input { background: none; border: none; outline: none; width: 100%; font-size: .82rem; }
+  .gsearch kbd { font-family: var(--mono); font-size: .62rem; background: var(--surface); border: 1px solid var(--rule); border-radius: 3px; padding: .02rem .25rem; color: var(--muted); }
+  .avatar { width: 1.75rem; height: 1.75rem; border-radius: 50%; background: var(--brand-bg); color: var(--brand-ink); display: grid; place-items: center; font-size: .72rem; font-weight: 600; flex: none; }
+  .demo-pill { font-family: var(--mono); font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; color: var(--warn); background: var(--warn-bg); border: 1px solid color-mix(in srgb, var(--warn) 30%, transparent); padding: .18rem .42rem; border-radius: 3px; }
+
+  .view { padding: 1.3rem; display: flex; flex-direction: column; gap: 1.4rem; }
+  .view[hidden] { display: none !important; }
+
+  .banner {
+    display: flex; align-items: flex-start; gap: .7rem;
+    border: 1px solid color-mix(in srgb, var(--crit) 40%, var(--rule));
+    background: var(--crit-bg); border-radius: 6px; padding: .8rem .95rem;
+  }
+  .banner .bi { color: var(--crit); font-family: var(--mono); font-weight: 600; }
+  .banner .bt { font-size: .88rem; font-weight: 600; }
+  .banner .bd { font-size: .82rem; color: var(--ink-2); margin-top: .15rem; }
+  .banner button { margin-left: auto; background: none; border: 1px solid var(--rule); border-radius: 5px; padding: .28rem .55rem; font-size: .78rem; color: var(--ink-2); flex: none; }
+
+  /* generic bits */
+  .sec { font-family: var(--mono); font-size: .63rem; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); margin-bottom: .6rem; display: flex; align-items: baseline; gap: .6rem; }
+  .sec .rt { margin-left: auto; text-transform: none; letter-spacing: 0; font-size: .72rem; }
+  .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 7px; }
+  .pad { padding: 1rem 1.05rem; }
+
+  .chip { display: inline-flex; align-items: center; gap: .3rem; font-family: var(--mono); font-size: .63rem; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; padding: .14rem .4rem; border-radius: 3px; white-space: nowrap; }
+  .chip::before { content: ""; width: .38rem; height: .38rem; border-radius: 50%; background: currentColor; flex: none; }
+  .chip.plain::before { display: none; }
+  .chip.ok { color: var(--ok); background: var(--ok-bg); }
+  .chip.warn { color: var(--warn); background: var(--warn-bg); }
+  .chip.crit { color: var(--crit); background: var(--crit-bg); }
+  .chip.info { color: var(--info); background: var(--info-bg); }
+  .chip.brand { color: var(--brand-ink); background: var(--brand-bg); }
+  .chip.mute { color: var(--muted); background: var(--surface-2); }
+
+  .btn { background: var(--surface); border: 1px solid var(--rule); border-radius: 5px; padding: .34rem .6rem; font-size: .8rem; color: var(--ink-2); }
+  .btn:hover { background: var(--surface-2); }
+  .btn.pri { background: var(--brand); border-color: var(--brand); color: var(--on-brand); font-weight: 600; }
+  .btn.danger { color: var(--crit); border-color: color-mix(in srgb, var(--crit) 40%, var(--rule)); }
+  .btn.danger.armed { background: var(--crit); border-color: var(--crit); color: #fff; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  .grid2 { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(0,1fr); gap: 1rem; align-items: start; }
+  @media (max-width: 64rem) { .grid2 { grid-template-columns: 1fr; } }
+
+  /* KPI */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .7rem; }
+  .kpi { background: var(--surface); border: 1px solid var(--rule); border-radius: 7px; padding: .85rem .95rem; display: flex; flex-direction: column; gap: .22rem; }
+  .kpi .k { font-family: var(--mono); font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .kpi .v { font-size: 1.75rem; font-weight: 600; line-height: 1.05; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .kpi .n { font-size: .74rem; color: var(--muted); line-height: 1.3; }
+  .kpi.crit .v { color: var(--crit); }
+  .kpi.warn .v { color: var(--warn); }
+
+  /* pillars */
+  .pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .7rem; }
+  .pillar { background: var(--surface); border: 1px solid var(--rule); border-radius: 7px; padding: .9rem 1rem; display: flex; flex-direction: column; gap: .5rem; }
+  .pillar .h { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
+  .pillar .t { font-size: .9rem; font-weight: 600; }
+  .pillar .p { font-family: var(--mono); font-size: .95rem; font-variant-numeric: tabular-nums; }
+  .pillar .d { font-size: .76rem; color: var(--muted); line-height: 1.4; }
+  .track { height: 5px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+  .track > i { display: block; height: 100%; border-radius: 3px; }
+  .track > i.ok { background: var(--ok); } .track > i.warn { background: var(--warn); } .track > i.crit { background: var(--crit); }
+
+  /* tables */
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 34rem; font-size: .83rem; }
+  thead th { font-family: var(--mono); font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 500; text-align: left; padding: .55rem .8rem; background: var(--surface-2); border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  tbody td { padding: .55rem .8rem; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr.clickable { cursor: pointer; }
+  tbody tr.clickable:hover td { background: var(--surface-2); }
+  tbody tr[aria-selected="true"] td { background: var(--brand-bg); }
+  tbody tr[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--brand); }
+  td .nm { font-weight: 600; display: block; }
+  td .id { font-family: var(--mono); font-size: .68rem; color: var(--muted); }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* detail */
+  .detail { position: sticky; top: 4.2rem; display: flex; flex-direction: column; gap: .9rem; padding: 1rem; }
+  @media (max-width: 64rem) { .detail { position: static; } }
+  .detail .hd { display: flex; flex-direction: column; gap: .35rem; }
+  .detail .hd .id { font-family: var(--mono); font-size: .68rem; color: var(--muted); letter-spacing: .05em; }
+  .detail .hd h3 { font-size: 1.02rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: .28rem; }
+  .blk { border-top: 1px solid var(--rule-soft); padding-top: .75rem; display: flex; flex-direction: column; gap: .5rem; }
+  .blk > .lb { font-family: var(--mono); font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  dl.f { display: grid; grid-template-columns: 8rem 1fr; gap: .4rem .8rem; margin: 0; font-size: .81rem; }
+  dl.f dt { font-family: var(--mono); font-size: .62rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding-top: .12rem; }
+  dl.f dd { margin: 0; color: var(--ink-2); }
+  @media (max-width: 26rem) { dl.f { grid-template-columns: 1fr; gap: .1rem; } dl.f dd { margin-bottom: .35rem; } }
+  .ent { display: flex; flex-direction: column; gap: .3rem; margin: 0; padding: 0; list-style: none; }
+  .ent li { display: flex; gap: .5rem; align-items: baseline; font-size: .8rem; }
+  .ent code { font-family: var(--mono); font-size: .74rem; color: var(--ink-2); background: var(--surface-2); padding: .05rem .3rem; border-radius: 3px; }
+  .ent .ex { color: var(--muted); font-size: .74rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+  /* chain */
+  .chain { display: flex; gap: .28rem; overflow-x: auto; }
+  .node { flex: 1 1 0; min-width: 5rem; border: 1px solid var(--rule); border-radius: 4px; padding: .45rem .5rem; background: var(--surface-2); }
+  .node .w { font-family: var(--mono); font-size: .64rem; font-weight: 500; display: block; }
+  .node .s { font-size: .66rem; color: var(--muted); line-height: 1.3; display: block; }
+  .node.lost { border-style: dashed; border-color: var(--crit); background: var(--crit-bg); }
+  .node.lost .w { color: var(--crit); }
+  .cut { align-self: center; font-family: var(--mono); font-size: .75rem; color: var(--rule); }
+  .cut.x { color: var(--crit); }
+
+  /* stream */
+  .stream { max-height: 27rem; overflow-y: auto; }
+  .stream table { min-width: 30rem; }
+  .decision { font-family: var(--mono); font-size: .68rem; font-weight: 600; letter-spacing: .04em; }
+  .decision.allow { color: var(--ok); }
+  .decision.deny { color: var(--crit); }
+  .decision.step { color: var(--warn); }
+  tbody tr.fresh td { animation: flash .9s ease-out; }
+  @keyframes flash { from { background: var(--brand-bg); } to { background: transparent; } }
+
+  /* policy */
+  .polrow { display: grid; grid-template-columns: 1fr auto; gap: .3rem .8rem; padding: .8rem 1rem; border-bottom: 1px solid var(--rule-soft); align-items: center; }
+  .polrow:last-child { border-bottom: none; }
+  .polrow .pn { font-size: .88rem; font-weight: 600; }
+  .polrow .pd { font-size: .78rem; color: var(--muted); grid-column: 1; line-height: 1.4; }
+  .polrow .pm { display: flex; gap: .35rem; align-items: center; }
+  .rule-line { font-family: var(--mono); font-size: .74rem; line-height: 1.7; color: var(--ink-2); background: var(--surface-2); border-radius: 5px; padding: .7rem .8rem; overflow-x: auto; }
+  .rule-line b { color: var(--brand-ink); font-weight: 600; }
+  .rule-line i { color: var(--crit); font-style: normal; }
+
+  /* approvals */
+  .appr { display: flex; flex-direction: column; }
+  .apprrow { display: grid; grid-template-columns: 1fr auto; gap: .45rem .8rem; padding: .75rem 1rem; border-bottom: 1px solid var(--rule-soft); align-items: center; }
+  .apprrow:last-child { border-bottom: none; }
+  .apprrow .at { font-size: .84rem; font-weight: 500; }
+  .apprrow .ad { font-size: .75rem; color: var(--muted); grid-column: 1; }
+  .apprrow .ab { display: flex; gap: .35rem; }
+  .apprrow.done { opacity: .5; }
+
+  /* alerts */
+  .alert { display: grid; grid-template-columns: .3rem 1fr auto; gap: 0 .85rem; padding: .85rem 1rem .85rem 0; border-bottom: 1px solid var(--rule-soft); align-items: start; }
+  .alert:last-child { border-bottom: none; }
+  .alert .st { align-self: stretch; border-radius: 0 3px 3px 0; }
+  .alert .st.crit { background: var(--crit); } .alert .st.warn { background: var(--warn); } .alert .st.info { background: var(--info); }
+  .alert .t { font-size: .88rem; font-weight: 600; }
+  .alert .d { font-size: .79rem; color: var(--muted); line-height: 1.45; margin-top: .15rem; }
+  .alert .m { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .35rem; }
+  .alert .rt { font-family: var(--mono); font-size: .68rem; color: var(--muted); white-space: nowrap; }
+
+  /* integrations */
+  .conns { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .7rem; }
+  .conn { background: var(--surface); border: 1px solid var(--rule); border-radius: 7px; padding: .8rem .9rem; display: flex; flex-direction: column; gap: .35rem; }
+  .conn .ct { font-size: .87rem; font-weight: 600; display: flex; align-items: center; gap: .45rem; }
+  .conn .cm { font-family: var(--mono); font-size: .68rem; color: var(--muted); }
+  .conn .cd { font-size: .76rem; color: var(--muted); line-height: 1.4; }
+
+  /* obligations */
+  .obl { border-bottom: 1px solid var(--rule-soft); }
+  .obl:last-child { border-bottom: none; }
+  .obl > button { width: 100%; background: none; border: none; text-align: left; display: grid; grid-template-columns: 1fr auto auto; gap: .4rem .8rem; align-items: center; padding: .7rem 1rem; }
+  .obl > button:hover { background: var(--surface-2); }
+  .obl .nm2 { font-size: .85rem; font-weight: 500; }
+  .obl .ev { font-family: var(--mono); font-size: .7rem; color: var(--muted); }
+  .obl .car { font-family: var(--mono); font-size: .65rem; color: var(--muted); transition: transform .15s ease; }
+  .obl[data-open="true"] .car { transform: rotate(90deg); }
+  .obl .dr { padding: 0 1rem .9rem; font-size: .8rem; color: var(--muted); line-height: 1.5; }
+  @media (max-width: 34rem) { .obl > button { grid-template-columns: 1fr auto; } .obl .ev { grid-column: 1 / -1; } }
+
+  .foot { font-size: .76rem; color: var(--muted); line-height: 1.5; border-top: 1px solid var(--rule); padding-top: .9rem; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="shell">
+
+  <aside class="side">
+    <div class="brand">
+      <span class="mk" aria-hidden="true">J</span>
+      <span><span class="nm">Jejak</span><span class="sf">Agent control plane</span></span>
+    </div>
+
+    <div class="navgroups" id="nav">
+      <div class="navgroup">
+        <div class="items">
+          <button data-v="v-ikhtisar" aria-current="true"><span class="ic" aria-hidden="true">◈</span>Ikhtisar</button>
+        </div>
+      </div>
+      <div class="navgroup">
+        <div class="lb">Temukan</div>
+        <div class="items">
+          <button data-v="v-registri"><span class="ic" aria-hidden="true">▤</span>Registri agent</button>
+          <button data-v="v-akses"><span class="ic" aria-hidden="true">⇄</span>Jalur akses</button>
+        </div>
+      </div>
+      <div class="navgroup">
+        <div class="lb">Kendalikan</div>
+        <div class="items">
+          <button data-v="v-kebijakan"><span class="ic" aria-hidden="true">§</span>Kebijakan</button>
+          <button data-v="v-runtime"><span class="ic" aria-hidden="true">⟳</span>Otorisasi runtime</button>
+          <button data-v="v-deteksi"><span class="ic" aria-hidden="true">⚠</span>Deteksi &amp; respons<span class="badge">3</span></button>
+        </div>
+      </div>
+      <div class="navgroup">
+        <div class="lb">Tata kelola</div>
+        <div class="items">
+          <button data-v="v-kewajiban"><span class="ic" aria-hidden="true">⚖</span>Kewajiban &amp; bukti</button>
+          <button data-v="v-integrasi"><span class="ic" aria-hidden="true">⊞</span>Integrasi</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="envbox">
+      <span class="l">Lingkungan</span>
+      <span class="v"><span class="dot"></span>Produksi · id-jkt-1</span>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div>
+        <div class="crumb" id="crumb">Ikhtisar</div>
+        <h1 id="vtitle">Postur kendali agent</h1>
+      </div>
+      <div class="gsearch">
+        <span aria-hidden="true">⌕</span>
+        <input type="search" placeholder="Cari agent, kebijakan, keputusan…" aria-label="Pencarian global">
+        <kbd>⌘K</kbd>
+      </div>
+      <span class="demo-pill">Prototipe · data contoh</span>
+      <span class="avatar" title="Rina Kusumawardani — Kepala Kepatuhan">RK</span>
+    </div>
+
+    <div id="killbanner"></div>
+
+    <!-- ============ IKHTISAR ============ -->
+    <div class="view" id="v-ikhtisar">
+      <div>
+        <div class="sec">Postur hari ini <span class="rt">PT Sinar Pendanaan Nusantara · perusahaan fiktif untuk demonstrasi</span></div>
+        <div class="kpis">
+          <div class="kpi"><span class="k">Identitas agent</span><span class="v">37</span><span class="n">28 terkelola · 9 belum</span></div>
+          <div class="kpi crit"><span class="k">Hak istimewa permanen</span><span class="v">11</span><span class="n">akses melekat tanpa masa berlaku</span></div>
+          <div class="kpi warn"><span class="k">Keputusan ditolak 24 jam</span><span class="v">418</span><span class="n">dari 61.204 permintaan</span></div>
+          <div class="kpi crit"><span class="k">Peringatan terbuka</span><span class="v">3</span><span class="n">1 kritis, 2 sedang</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec">Tiga pilar kendali</div>
+        <div class="pillars">
+          <div class="pillar">
+            <div class="h"><span class="t">Temukan</span><span class="p">74%</span></div>
+            <div class="track"><i class="warn" style="width:74%"></i></div>
+            <p class="d">Inventaris agent, jalur akses, dan penemuan agent bayangan. 9 identitas masih di luar kendali platform.</p>
+          </div>
+          <div class="pillar">
+            <div class="h"><span class="t">Kendalikan</span><span class="p">41%</span></div>
+            <div class="track"><i class="crit" style="width:41%"></i></div>
+            <p class="d">Hak istimewa nol permanen, izin sesaat, dan penegakan per tindakan. Sebagian besar akses masih melekat permanen.</p>
+          </div>
+          <div class="pillar">
+            <div class="h"><span class="t">Tata kelola</span><span class="p">58%</span></div>
+            <div class="track"><i class="warn" style="width:58%"></i></div>
+            <p class="d">Pemetaan kewajiban, paket bukti, dan sertifikasi akses berkala terhadap PADK OJK 1/2026 dan UU PDP.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="sec">Aliran keputusan otorisasi <span class="rt">10 terbaru</span></div>
+          <div class="card tablewrap">
+            <table>
+              <thead><tr><th>Waktu</th><th>Agent</th><th>Tindakan</th><th>Keputusan</th></tr></thead>
+              <tbody id="mini-stream"></tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div class="sec">Perlu tindakan Anda</div>
+          <div class="card appr" id="mini-appr"></div>
+        </div>
+      </div>
+
+      <p class="foot">Seluruh nama perusahaan, agent, angka, dan keputusan pada layar ini adalah data contoh yang dibuat untuk demonstrasi produk. Platform sebenarnya tidak pernah menyalin isi data nasabah keluar dari lingkungan klien.</p>
+    </div>
+
+    <!-- ============ REGISTRI ============ -->
+    <div class="view" id="v-registri" hidden>
+      <div class="grid2">
+        <div>
+          <div class="sec">Identitas agent <span class="rt" id="regcount"></span></div>
+          <div class="card tablewrap">
+            <table>
+              <thead><tr><th>Agent</th><th>Kredensial</th><th>Hak permanen</th><th>Risiko</th><th>Status</th></tr></thead>
+              <tbody id="reg-rows"></tbody>
+            </table>
+          </div>
+        </div>
+        <aside class="card detail" id="reg-detail" aria-live="polite"></aside>
+      </div>
+    </div>
+
+    <!-- ============ JALUR AKSES ============ -->
+    <div class="view" id="v-akses" hidden>
+      <div>
+        <div class="sec">Rantai delegasi &amp; batas kepercayaan</div>
+        <div class="card pad" style="display:flex;flex-direction:column;gap:1rem">
+          <p style="font-size:.86rem;color:var(--ink-2);max-width:46rem">Jalur akses menelusuri setiap hop dari manusia yang memberi wewenang sampai sistem yang akhirnya disentuh. Hop yang melintasi batas organisasi ditandai terpisah, karena di titik itulah propagasi identitas berhenti pada standar yang ada saat ini.</p>
+          <div id="paths" style="display:flex;flex-direction:column;gap:1.1rem"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ KEBIJAKAN ============ -->
+    <div class="view" id="v-kebijakan" hidden>
+      <div class="grid2">
+        <div>
+          <div class="sec">Kebijakan aktif <span class="rt">7 kebijakan · 2 mode pantau</span></div>
+          <div class="card" id="pol-list"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1rem">
+          <div>
+            <div class="sec">Kebijakan terpilih</div>
+            <div class="card pad" id="pol-detail"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RUNTIME ============ -->
+    <div class="view" id="v-runtime" hidden>
+      <div class="grid2">
+        <div>
+          <div class="sec">Aliran keputusan langsung
+            <span class="rt"><button class="btn" id="pause">Jeda</button></span>
+          </div>
+          <div class="card stream tablewrap">
+            <table>
+              <thead><tr><th>Waktu</th><th>Agent</th><th>Tindakan</th><th>Kebijakan</th><th>Keputusan</th></tr></thead>
+              <tbody id="stream-rows"></tbody>
+            </table>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1rem">
+          <div>
+            <div class="sec">Antrean persetujuan bertingkat</div>
+            <div class="card appr" id="appr"></div>
+          </div>
+          <div>
+            <div class="sec">Penghentian darurat</div>
+            <div class="card pad" style="display:flex;flex-direction:column;gap:.7rem">
+              <p style="font-size:.82rem;color:var(--muted);line-height:1.5">Menghentikan agent akan mencabut seluruh token aktifnya, menolak permintaan berikutnya, dan mencatat alasan penghentian ke jejak audit. Proses yang sedang berjalan diselesaikan atau digulung balik sesuai kebijakan.</p>
+              <div style="display:flex;flex-direction:column;gap:.4rem">
+                <label style="font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)" for="killsel">Agent</label>
+                <select id="killsel" style="background:var(--surface);border:1px solid var(--rule);border-radius:5px;padding:.4rem .5rem;font-size:.83rem"></select>
+              </div>
+              <button class="btn danger" id="killbtn" style="align-self:flex-start">Hentikan agent</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DETEKSI ============ -->
+    <div class="view" id="v-deteksi" hidden>
+      <div>
+        <div class="sec">Peringatan terbuka</div>
+        <div class="card" id="alerts"></div>
+      </div>
+      <div>
+        <div class="sec">Aturan deteksi</div>
+        <div class="card tablewrap">
+          <table>
+            <thead><tr><th>Aturan</th><th>Sinyal</th><th>Respons otomatis</th><th>Status</th></tr></thead>
+            <tbody id="rules"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ KEWAJIBAN ============ -->
+    <div class="view" id="v-kewajiban" hidden>
+      <div class="grid2">
+        <div>
+          <div class="sec">Pemetaan kewajiban</div>
+          <div id="obls"></div>
+        </div>
+        <div>
+          <div class="sec">Paket bukti</div>
+          <div class="card pad" style="display:flex;flex-direction:column;gap:.85rem">
+            <p style="font-size:.83rem;color:var(--ink-2);line-height:1.5">Paket bukti menarik keadaan platform pada periode terpilih: inventaris identitas, kebijakan yang berlaku, seluruh keputusan otorisasi, peringatan berikut penanganannya, dan lembar pengesahan pemilik risiko.</p>
+            <dl class="f">
+              <dt>Periode</dt><dd>Agustus 2026</dd>
+              <dt>Ditujukan</dt><dd>Pemeriksaan OJK</dd>
+              <dt>Isi</dt><dd>9 bagian · 61.204 keputusan · 37 identitas</dd>
+              <dt>Paket terakhir</dt><dd class="num">PB-2026-07-011 · 31 Jul 2026</dd>
+            </dl>
+            <button class="btn pri" id="packbtn" style="align-self:flex-start">Susun paket bukti</button>
+            <div id="packout"></div>
+          </div>
+        </div>
+      </div>
+      <p class="foot">Pemetaan kewajiban adalah interpretasi kerja, bukan nasihat hukum. Rujukan dan status kesiapan wajib ditinjau bersama satuan kerja kepatuhan sebelum dipakai dalam pelaporan resmi.</p>
+    </div>
+
+    <!-- ============ INTEGRASI ============ -->
+    <div class="view" id="v-integrasi" hidden>
+      <div>
+        <div class="sec">Sumber identitas &amp; titik penegakan</div>
+        <div class="conns" id="conns"></div>
+      </div>
+      <p class="foot">Titik penegakan adalah tempat platform benar-benar dapat menolak sebuah tindakan. Tanpa titik penegakan, sebuah integrasi hanya memberi visibilitas — berguna untuk bukti, tetapi tidak menghentikan apa pun.</p>
+    </div>
+
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var el = function (t, c, h) { var n = document.createElement(t); if (c) n.className = c; if (h != null) n.innerHTML = h; return n; };
+  var pad2 = function (n) { return n < 10 ? '0' + n : '' + n; };
+
+  /* ============ data contoh ============ */
+
+  var AGENTS = [
+    { id: "AGT-001", nm: "Skoring Kredit Otomatis", sys: "Loan Origination", cred: "Rahasia statis", credNote: "SVC_SCORING · dipakai bersama 3 sistem",
+      standing: true, risk: 92, status: "aktif", owner: "—", ttl: "Tanpa masa berlaku", rot: "412 hari lalu",
+      ent: [["core.nasabah:read", "seluruh tabel, bukan hanya pemohon"], ["scoring.model:invoke", "sesuai"], ["core.pengajuan:write", "sesuai"]],
+      chain: [["Nasabah","Memberi persetujuan",0],["Petugas kredit","Menugaskan",0],["Agent","Akun bersama",1],["Basis data","4.180 record",1]] },
+    { id: "AGT-002", nm: "Asisten Penagihan WhatsApp", sys: "Collection Hub", cred: "Token per kampanye", credNote: "berlaku 24 jam",
+      standing: false, risk: 61, status: "aktif", owner: "Kepala Collection", ttl: "24 jam", rot: "otomatis",
+      ent: [["kontak.nasabah:read", "sesuai"], ["pesan.keluar:send", "batas 500/jam"], ["kontak.darurat:read", "melebihi kebutuhan"]],
+      chain: [["Nasabah","Terikat perjanjian",0],["Petugas","Menyetujui kampanye",0],["Agent","Menyusun pesan",0],["Gateway vendor","Lintas organisasi",1]] },
+    { id: "AGT-003", nm: "Verifikasi Dokumen & OCR", sys: "Onboarding · vendor", cred: "Kunci API vendor", credNote: "rotasi tahunan",
+      standing: true, risk: 78, status: "aktif", owner: "Kepala Operasional", ttl: "Tanpa masa berlaku", rot: "203 hari lalu",
+      ent: [["dokumen.kyc:read", "sesuai"], ["dokumen.kyc:write", "sesuai"], ["nasabah.nik:read", "sesuai"]],
+      chain: [["Nasabah","Mengunggah",0],["Onboarding","Meneruskan",0],["Agent vendor","Di luar kendali",1],["Basis KYC","Hasil disimpan",1]] },
+    { id: "AGT-004", nm: "Chatbot Layanan Nasabah", sys: "Portal nasabah", cred: "Identitas terkelola", credNote: "sertifikat berumur pendek",
+      standing: false, risk: 22, status: "aktif", owner: "Kepala Layanan", ttl: "15 menit", rot: "otomatis",
+      ent: [["pengetahuan:read", "sesuai"], ["tiket:create", "sesuai"]],
+      chain: [["Nasabah","Memulai sesi",0],["Portal","Meneruskan",0],["Agent","Hanya baca",0],["Basis pengetahuan","Tanpa data pribadi",0]] },
+    { id: "AGT-005", nm: "Deteksi Fraud Lintas Tabel", sys: "Risk Engine", cred: "Rahasia statis", credNote: "SVC_RISK · baca 9 tabel",
+      standing: true, risk: 88, status: "aktif", owner: "—", ttl: "Tanpa masa berlaku", rot: "289 hari lalu",
+      ent: [["core.transaksi:read", "sesuai"], ["core.nasabah:read", "melebihi kebutuhan"], ["transaksi:block", "tanpa peninjauan manusia"]],
+      chain: [["Nasabah","Bertransaksi",0],["Sistem transaksi","Memicu",0],["Agent","Akun bersama",1],["9 tabel produksi","Baca lintas tabel",1]] },
+    { id: "AGT-006", nm: "Rekonsiliasi Pembayaran", sys: "Ledger", cred: "Identitas terkelola", credNote: "jendela 01.00–03.00",
+      standing: false, risk: 14, status: "aktif", owner: "Kepala Keuangan", ttl: "2 jam", rot: "otomatis",
+      ent: [["ledger:read", "sesuai"], ["jurnal:write", "sesuai"]],
+      chain: [["Penjadwal","Memicu batch",0],["Agent","Mencocokkan",0],["Ledger","Menulis jurnal",0],["Petugas","Meninjau selisih",0]] },
+    { id: "AGT-007", nm: "Asisten Analis (tidak terdaftar)", sys: "Alat LLM publik", cred: "Akun pribadi karyawan", credNote: "di luar kendali platform",
+      standing: true, risk: 97, status: "dikarantina", owner: "—", ttl: "Tidak diketahui", rot: "tidak pernah",
+      ent: [["tidak terpetakan", "ditemukan dari log jaringan"]],
+      chain: [["Analis","Menempelkan data",0],["Alat publik","Lintas organisasi",1],["?","Tidak diketahui",1],["?","Tidak terpantau",1]] },
+    { id: "AGT-008", nm: "Penyusun Laporan Berkala", sys: "Pelaporan regulator", cred: "Identitas terkelola", credNote: "hanya baca gudang data",
+      standing: false, risk: 19, status: "aktif", owner: "Kepala Kepatuhan", ttl: "1 jam", rot: "otomatis",
+      ent: [["gudang.agregat:read", "sesuai"]],
+      chain: [["Kepatuhan","Menugaskan",0],["Agent","Menyusun",0],["Gudang data","Agregat",0],["Manusia","Menandatangani",0]] },
+    { id: "AGT-009", nm: "Penyaring Prospek Pemasaran", sys: "CRM", cred: "Token tingkat tim", credNote: "dipakai 6 pengguna",
+      standing: true, risk: 54, status: "aktif", owner: "Kepala Pemasaran", ttl: "Tanpa masa berlaku", rot: "97 hari lalu",
+      ent: [["crm.prospek:read", "sesuai"], ["crm.segmen:write", "sesuai"], ["crm.nasabah:read", "melebihi kebutuhan"]],
+      chain: [["Calon nasabah","Memberi persetujuan",0],["Petugas","Menjalankan",0],["Agent","Token tim",1],["CRM","Memperbarui segmen",1]] }
+  ];
+
+  var POLICIES = [
+    { id: "POL-01", nm: "Batas nominal pengembalian dana", mode: "tegakkan", hits: "1.204 evaluasi · 38 tolak",
+      d: "Agent boleh memproses pengembalian dana hanya sampai batas nominal, di jam kerja, dan satu kali per tiket.",
+      rule: "IZINKAN <b>refund:execute</b> BILA nominal &le; <b>Rp 2.000.000</b>\n  DAN jam <b>08:00–17:00 WIB</b>\n  DAN tiket belum pernah direfund\nSELAIN ITU <i>minta persetujuan penyelia</i>" },
+    { id: "POL-02", nm: "Akses data nasabah harus terikat pemohon", mode: "tegakkan", hits: "24.881 evaluasi · 212 tolak",
+      d: "Membaca data nasabah hanya diizinkan untuk nasabah yang sedang diproses, bukan seluruh tabel.",
+      rule: "IZINKAN <b>core.nasabah:read</b> BILA subjek = <b>pemohon pada pengajuan aktif</b>\nSELAIN ITU <i>tolak</i> dan catat sebagai upaya akses berlebih" },
+    { id: "POL-03", nm: "Pemblokiran transaksi wajib ditinjau manusia", mode: "tegakkan", hits: "702 evaluasi · 61 bertingkat",
+      d: "Keputusan yang menghentikan transaksi nasabah tidak boleh final tanpa peninjauan manusia.",
+      rule: "IZINKAN <b>transaksi:block</b> BILA skor &ge; <b>0,95</b>\n  DAN peninjau manusia menyetujui dalam <b>15 menit</b>\nSELAIN ITU <i>tahan, jangan blokir</i>" },
+    { id: "POL-04", nm: "Tidak ada hak istimewa permanen", mode: "pantau", hits: "37 identitas · 11 melanggar",
+      d: "Setiap identitas agent harus memperoleh akses sesaat dengan masa berlaku, bukan hak melekat.",
+      rule: "WAJIB setiap identitas agent memiliki <b>masa berlaku &le; 24 jam</b>\nSAAT INI <i>11 identitas memakai rahasia statis tanpa masa berlaku</i>" },
+    { id: "POL-05", nm: "Data pribadi dilarang keluar lingkungan", mode: "tegakkan", hits: "9.117 evaluasi · 84 tolak",
+      d: "Muatan yang mengandung penanda data pribadi ditolak sebelum meninggalkan jaringan perusahaan.",
+      rule: "TOLAK <b>keluar:*</b> BILA muatan mengandung <b>NIK</b>, <b>nomor rekening</b>, atau <b>foto identitas</b>\nKECUALI tujuan ada pada <b>daftar penyedia terdaftar</b>" },
+    { id: "POL-06", nm: "Penagihan di luar jam wajar", mode: "tegakkan", hits: "12.400 evaluasi · 19 tolak",
+      d: "Pesan penagihan tidak boleh dikirim di luar jam yang diizinkan ketentuan perlindungan konsumen.",
+      rule: "IZINKAN <b>pesan.keluar:send</b> BILA jam <b>08:00–20:00 WIB</b>\n  DAN frekuensi &le; <b>3 pesan per nasabah per hari</b>\nSELAIN ITU <i>tolak</i>" },
+    { id: "POL-07", nm: "Agent vendor wajib membawa identitas asal", mode: "pantau", hits: "5 vendor · 3 belum patuh",
+      d: "Agent milik pihak ketiga harus meneruskan identitas manusia yang memberi wewenang di setiap hop.",
+      rule: "WAJIB permintaan lintas organisasi membawa <b>klaim atas-nama</b>\nSAAT INI <i>3 dari 5 vendor belum mendukung penerusan identitas</i>" }
+  ];
+
+  var ALERTS = [
+    { sev: "crit", t: "Agent tidak terdaftar mengirim data ke tujuan di luar daftar", rt: "14 menit lalu",
+      d: "AGT-007 terdeteksi mengirim muatan yang mengandung penanda data pribadi ke penyedia LLM publik dari akun pribadi karyawan. Otomatis dikarantina; sesi dihentikan.",
+      m: ["Aturan DET-02", "AGT-007", "Dikarantina otomatis"] },
+    { sev: "warn", t: "Lonjakan penolakan pada satu agent", rt: "1 jam lalu",
+      d: "AGT-005 memicu 212 penolakan POL-02 dalam satu jam — pola konsisten dengan pemindaian tabel di luar cakupan fungsinya, bukan kesalahan tunggal.",
+      m: ["Aturan DET-01", "AGT-005", "Perlu ditinjau"] },
+    { sev: "warn", t: "Rahasia statis melewati batas usia rotasi", rt: "6 jam lalu",
+      d: "Tiga rahasia berumur lebih dari 180 hari masih dipakai agent produksi. Rotasi otomatis tidak dapat dijalankan karena sistem tujuan belum mendukung identitas berumur pendek.",
+      m: ["Aturan DET-04", "3 identitas", "Terjadwal"] }
+  ];
+
+  var RULES = [
+    ["DET-01", "Lonjakan penolakan atau pola akses di luar kebiasaan", "Naikkan ke persetujuan bertingkat", "aktif"],
+    ["DET-02", "Muatan berisi penanda data pribadi menuju tujuan tak terdaftar", "Karantina agent, cabut token", "aktif"],
+    ["DET-03", "Agent memakai kredensial manusia", "Peringatkan pemilik risiko", "aktif"],
+    ["DET-04", "Rahasia statis melampaui usia rotasi", "Buat tugas rotasi", "aktif"],
+    ["DET-05", "Rantai delegasi tanpa klaim atas-nama", "Catat temuan, tanpa blokir", "pantau"],
+    ["DET-06", "Agent baru muncul tanpa pendaftaran", "Karantina sampai ditinjau", "aktif"]
+  ];
+
+  var CONNS = [
+    ["Core banking (vendor A)", "Titik penegakan", "ok", "Permintaan agent melewati proksi kebijakan sebelum menyentuh basis data inti."],
+    ["Gudang data", "Titik penegakan", "ok", "Akses baca dievaluasi per kolom, dengan penyamaran otomatis pada kolom data pribadi."],
+    ["Gateway model AI", "Titik penegakan", "ok", "Seluruh panggilan model melewati gateway; muatan diperiksa sebelum meninggalkan jaringan."],
+    ["Peladen MCP internal", "Titik penegakan", "warn", "Tiga dari sebelas alat belum mendeklarasikan cakupan izin, sehingga dijalankan dengan izin paling sempit."],
+    ["Penyedia identitas (SSO)", "Sumber identitas", "ok", "Identitas manusia ditarik dari sini untuk mengikat setiap tindakan agent ke penugasnya."],
+    ["CRM (SaaS)", "Visibilitas saja", "warn", "Belum ada titik penegakan; pelanggaran hanya tercatat setelah terjadi."],
+    ["Gateway pesan (vendor B)", "Visibilitas saja", "crit", "Vendor belum mendukung penerusan identitas atas-nama. Rantai atribusi terputus di hop ini."],
+    ["Log jaringan", "Penemuan", "ok", "Sumber penemuan agent bayangan yang tidak terdaftar di platform."]
+  ];
+
+  var OBLS = [
+    { src: "PADK OJK 1/2026", note: "Berlaku 1 Maret 2026", items: [
+      ["Dokumentasi penyedia jasa TI dan penilaian risikonya", "warn", "3/5", "Dua vendor yang menjalankan komponen AI belum dinilai ulang setelah fitur AI ditambahkan."],
+      ["Klausul hak audit regulator pada kontrak vendor", "crit", "3/5", "Dua kontrak perlu adendum. Platform menautkan setiap vendor ke status klausulnya."],
+      ["Tata kelola data dan DPIA untuk pemrosesan berisiko tinggi", "crit", "1/6", "Lima agent berisiko tinggi belum memiliki DPIA."],
+      ["Pelaporan kejadian: 24 jam dan 5 hari kerja", "ok", "4/4", "Peringatan platform otomatis membuka berkas kejadian dengan penghitung waktu pelaporan."]
+    ]},
+    { src: "UU PDP No. 27/2022", note: "Sanksi administratif hingga 2% pendapatan tahunan", items: [
+      ["Dasar pemrosesan yang sah untuk setiap agent", "warn", "6/9", "Tiga agent memproses tanpa dasar terdokumentasi."],
+      ["Hak subjek data atas keputusan otomatis", "crit", "1/4", "Belum ada mekanisme penjelasan dan permintaan peninjauan bagi nasabah."],
+      ["Pencatatan kegiatan pemrosesan per agent", "ok", "9/9", "Setiap keputusan otorisasi tercatat lengkap dengan penugas manusianya bila tersedia."]
+    ]},
+    { src: "Panduan Tata Kelola AI Perbankan OJK", note: "29 April 2025 · patokan minimum sektor", items: [
+      ["Akuntabilitas: pemilik jelas untuk setiap keputusan AI", "warn", "6/9", "Tiga agent belum memiliki pemilik risiko."],
+      ["Pengawasan manusia yang bermakna", "warn", "5/9", "Empat agent berjalan penuh otomatis tanpa gerbang peninjauan."],
+      ["Keandalan: pengujian dan evaluasi berkala", "crit", "1/9", "Belum ada jadwal evaluasi berkala yang terdokumentasi."]
+    ]}
+  ];
+
+  var TITLES = {
+    "v-ikhtisar": ["Ikhtisar", "Postur kendali agent"],
+    "v-registri": ["Temukan", "Registri identitas agent"],
+    "v-akses":    ["Temukan", "Jalur akses & rantai delegasi"],
+    "v-kebijakan":["Kendalikan", "Kebijakan penegakan"],
+    "v-runtime":  ["Kendalikan", "Otorisasi runtime"],
+    "v-deteksi":  ["Kendalikan", "Deteksi & respons"],
+    "v-kewajiban":["Tata kelola", "Kewajiban & paket bukti"],
+    "v-integrasi":["Tata kelola", "Integrasi & titik penegakan"]
+  };
+
+  /* ============ navigation ============ */
+
+  var navBtns = Array.prototype.slice.call(document.querySelectorAll('#nav button'));
+  function go(v) {
+    navBtns.forEach(function (b) {
+      var on = b.dataset.v === v;
+      b.setAttribute('aria-current', on ? 'true' : 'false');
+      document.getElementById(b.dataset.v).hidden = !on;
+    });
+    $('#crumb').textContent = TITLES[v][0];
+    $('#vtitle').textContent = TITLES[v][1];
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+  navBtns.forEach(function (b) { b.addEventListener('click', function () { go(b.dataset.v); }); });
+
+  /* ============ registry ============ */
+
+  var selId = "AGT-001";
+
+  function riskChip(r) {
+    var c = r >= 80 ? 'crit' : r >= 50 ? 'warn' : 'ok';
+    var l = r >= 80 ? 'Tinggi' : r >= 50 ? 'Sedang' : 'Rendah';
+    return '<span class="chip ' + c + '">' + l + ' ' + r + '</span>';
+  }
+  function statusChip(s) {
+    if (s === 'aktif') return '<span class="chip ok">Aktif</span>';
+    if (s === 'dikarantina') return '<span class="chip warn">Dikarantina</span>';
+    return '<span class="chip crit">Dihentikan</span>';
+  }
+
+  function renderReg() {
+    var tb = $('#reg-rows'); tb.innerHTML = '';
+    AGENTS.forEach(function (a) {
+      var tr = el('tr', 'clickable');
+      tr.setAttribute('aria-selected', a.id === selId ? 'true' : 'false');
+      tr.innerHTML =
+        '<td><span class="nm">' + a.nm + '</span><span class="id">' + a.id + ' · ' + a.sys + '</span></td>' +
+        '<td>' + a.cred + '<span class="id" style="display:block">' + a.credNote + '</span></td>' +
+        '<td>' + (a.standing ? '<span class="chip crit">Permanen</span>' : '<span class="chip ok">Sesaat</span>') + '</td>' +
+        '<td>' + riskChip(a.risk) + '</td>' +
+        '<td>' + statusChip(a.status) + '</td>';
+      tr.addEventListener('click', function () { selId = a.id; renderReg(); renderDetail(); });
+      tb.appendChild(tr);
+    });
+    $('#regcount').textContent = AGENTS.length + ' identitas · ' +
+      AGENTS.filter(function (a) { return a.standing; }).length + ' berhak permanen';
+  }
+
+  function chainHTML(a) {
+    return a.chain.map(function (c, i) {
+      var node = '<span class="node' + (c[2] ? ' lost' : '') + '"><span class="w">' + c[0] + '</span><span class="s">' + c[1] + '</span></span>';
+      if (i === a.chain.length - 1) return node;
+      var cut = a.chain[i + 1][2] === 1;
+      return node + '<span class="cut' + (cut ? ' x' : '') + '" aria-hidden="true">' + (cut ? '⇢' : '→') + '</span>';
+    }).join('');
+  }
+
+  function renderDetail() {
+    var a = AGENTS.filter(function (x) { return x.id === selId; })[0];
+    var d = $('#reg-detail');
+    d.innerHTML =
+      '<div class="hd"><span class="id">' + a.id + '</span><h3>' + a.nm + '</h3>' +
+        '<div class="chips">' + statusChip(a.status) + riskChip(a.risk) +
+        (a.standing ? '<span class="chip crit">Hak permanen</span>' : '<span class="chip ok">Akses sesaat</span>') + '</div></div>' +
+
+      '<div class="blk"><span class="lb">Rantai atribusi</span><div class="chain">' + chainHTML(a) + '</div></div>' +
+
+      '<div class="blk"><span class="lb">Identitas</span><dl class="f">' +
+        '<dt>Sistem</dt><dd>' + a.sys + '</dd>' +
+        '<dt>Kredensial</dt><dd>' + a.cred + ' · ' + a.credNote + '</dd>' +
+        '<dt>Masa berlaku</dt><dd>' + a.ttl + '</dd>' +
+        '<dt>Rotasi terakhir</dt><dd>' + a.rot + '</dd>' +
+        '<dt>Pemilik risiko</dt><dd>' + (a.owner === '—' ? 'Belum ditunjuk' : a.owner) + '</dd>' +
+      '</dl></div>' +
+
+      '<div class="blk"><span class="lb">Hak akses efektif</span><ul class="ent">' +
+        a.ent.map(function (e) {
+          var bad = e[1].indexOf('melebihi') === 0 || e[1].indexOf('tanpa') === 0 || e[1].indexOf('ditemukan') === 0 || e[1].indexOf('seluruh') === 0;
+          return '<li><code>' + e[0] + '</code><span class="ex" style="' + (bad ? 'color:var(--crit)' : '') + '">' + e[1] + '</span></li>';
+        }).join('') + '</ul></div>' +
+
+      '<div class="blk"><span class="lb">Tindakan</span><div class="actions">' +
+        '<button class="btn" data-act="rotate">Rotasi kredensial</button>' +
+        '<button class="btn" data-act="jit">Ubah ke akses sesaat</button>' +
+        '<button class="btn danger" data-act="stop">Hentikan</button>' +
+      '</div><p id="actmsg" style="font-size:.78rem;color:var(--muted)"></p></div>';
+
+    Array.prototype.forEach.call(d.querySelectorAll('[data-act]'), function (b) {
+      b.addEventListener('click', function () {
+        var m = $('#actmsg');
+        if (b.dataset.act === 'rotate') { a.rot = 'baru saja'; m.textContent = 'Permintaan rotasi dikirim. Kredensial lama berlaku 10 menit lagi untuk proses yang sedang berjalan.'; }
+        if (b.dataset.act === 'jit') { a.standing = false; a.ttl = '1 jam'; m.textContent = 'Identitas dialihkan ke akses sesaat. Hak permanen dicabut pada siklus berikutnya.'; }
+        if (b.dataset.act === 'stop') { stopAgent(a.id); return; }
+        renderReg(); renderDetail();
+      });
+    });
+  }
+
+  renderReg(); renderDetail();
+
+  /* ============ paths ============ */
+
+  var pw = $('#paths');
+  [AGENTS[0], AGENTS[1], AGENTS[6]].forEach(function (a) {
+    var w = el('div');
+    var broken = a.chain.some(function (c) { return c[2] === 1; });
+    w.innerHTML =
+      '<div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline;margin-bottom:.45rem">' +
+        '<span style="font-size:.87rem;font-weight:600">' + a.nm + '</span>' +
+        '<span class="id" style="font-family:var(--mono);font-size:.68rem;color:var(--muted)">' + a.id + '</span>' +
+        (broken ? '<span class="chip crit">Atribusi putus</span>' : '<span class="chip ok">Atribusi utuh</span>') +
+      '</div><div class="chain">' + chainHTML(a) + '</div>';
+    pw.appendChild(w);
+  });
+
+  /* ============ policies ============ */
+
+  var selPol = "POL-01";
+  function renderPol() {
+    var w = $('#pol-list'); w.innerHTML = '';
+    POLICIES.forEach(function (p) {
+      var r = el('div', 'polrow');
+      r.style.cursor = 'pointer';
+      r.innerHTML =
+        '<span class="pn">' + p.nm + '</span>' +
+        '<span class="pm">' + (p.mode === 'tegakkan' ? '<span class="chip ok">Tegakkan</span>' : '<span class="chip warn">Pantau</span>') + '</span>' +
+        '<span class="pd">' + p.d + '</span>';
+      if (p.id === selPol) r.style.background = 'var(--brand-bg)';
+      r.addEventListener('click', function () { selPol = p.id; renderPol(); renderPolDetail(); });
+      w.appendChild(r);
+    });
+  }
+  function renderPolDetail() {
+    var p = POLICIES.filter(function (x) { return x.id === selPol; })[0];
+    $('#pol-detail').innerHTML =
+      '<div class="hd" style="margin-bottom:.7rem"><span class="id" style="font-family:var(--mono);font-size:.68rem;color:var(--muted)">' + p.id + '</span>' +
+      '<h3 style="font-size:1rem">' + p.nm + '</h3></div>' +
+      '<div class="rule-line">' + p.rule.replace(/\n/g, '<br>') + '</div>' +
+      '<p style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-top:.7rem">' + p.hits + ' · 30 hari terakhir</p>';
+  }
+  renderPol(); renderPolDetail();
+
+  /* ============ runtime stream ============ */
+
+  var ACTS = {
+    "AGT-001": [["core.nasabah:read","POL-02"],["scoring.model:invoke","POL-04"],["core.pengajuan:write","POL-02"],["refund:execute","POL-01"]],
+    "AGT-002": [["pesan.keluar:send","POL-06"],["kontak.nasabah:read","POL-02"],["keluar:vendor-b","POL-05"]],
+    "AGT-003": [["dokumen.kyc:read","POL-05"],["dokumen.kyc:write","POL-05"],["nasabah.nik:read","POL-02"]],
+    "AGT-004": [["pengetahuan:read","POL-02"],["tiket:create","POL-02"]],
+    "AGT-005": [["core.transaksi:read","POL-02"],["core.nasabah:read","POL-02"],["transaksi:block","POL-03"]],
+    "AGT-006": [["ledger:read","POL-02"],["jurnal:write","POL-02"]],
+    "AGT-008": [["gudang.agregat:read","POL-02"]],
+    "AGT-009": [["crm.prospek:read","POL-02"],["crm.segmen:write","POL-02"],["crm.nasabah:read","POL-02"]]
+  };
+  var LIVE = AGENTS.filter(function (a) { return a.status === 'aktif'; });
+  var clock = { h: 9, m: 14, s: 2 };
+  var rows = [];
+
+  function tickClock() {
+    clock.s += 1 + Math.floor(Math.random() * 7);
+    if (clock.s >= 60) { clock.s -= 60; clock.m++; }
+    if (clock.m >= 60) { clock.m -= 60; clock.h++; }
+    return pad2(clock.h) + ':' + pad2(clock.m) + ':' + pad2(clock.s);
+  }
+
+  function makeRow() {
+    var pool = LIVE.filter(function (x) { return ACTS[x.id]; });
+    if (!pool.length) return { t: tickClock(), a: { nm: '—', id: '—' }, act: '—', pol: '—', dec: 'allow' };
+    var a = pool[Math.floor(Math.random() * pool.length)];
+    var list = ACTS[a.id];
+    var act = list[Math.floor(Math.random() * list.length)];
+    var friction = 0.04 + (a.risk / 100) * 0.26;
+    var r = Math.random();
+    var dec = r < friction * 0.45 ? 'deny' : r < friction ? 'step' : 'allow';
+    return { t: tickClock(), a: a, act: act[0], pol: act[1], dec: dec };
+  }
+
+  function decHTML(d) {
+    if (d === 'allow') return '<span class="decision allow">IZINKAN</span>';
+    if (d === 'deny') return '<span class="decision deny">TOLAK</span>';
+    return '<span class="decision step">BERTINGKAT</span>';
+  }
+
+  function rowHTML(r, mini) {
+    return '<td class="num">' + r.t + '</td>' +
+      '<td><span class="nm">' + r.a.nm + '</span><span class="id">' + r.a.id + '</span></td>' +
+      '<td><code style="font-family:var(--mono);font-size:.74rem">' + r.act + '</code></td>' +
+      (mini ? '' : '<td class="num" style="font-size:.74rem;color:var(--muted)">' + r.pol + '</td>') +
+      '<td>' + decHTML(r.dec) + '</td>';
+  }
+
+  function paint() {
+    var full = $('#stream-rows'); var mini = $('#mini-stream');
+    full.innerHTML = ''; mini.innerHTML = '';
+    rows.slice(0, 40).forEach(function (r, i) {
+      var tr = el('tr', i === 0 && r.fresh ? 'fresh' : '');
+      tr.innerHTML = rowHTML(r, false);
+      full.appendChild(tr);
+      if (i < 10) { var t2 = el('tr', i === 0 && r.fresh ? 'fresh' : ''); t2.innerHTML = rowHTML(r, true); mini.appendChild(t2); }
+    });
+  }
+
+  for (var i = 0; i < 14; i++) rows.unshift(makeRow());
+  paint();
+
+  var running = true, timer = null;
+  function loop() {
+    timer = setTimeout(function () {
+      if (running) {
+        var r = makeRow(); r.fresh = true;
+        rows.forEach(function (x) { x.fresh = false; });
+        rows.unshift(r);
+        if (rows.length > 60) rows.pop();
+        paint();
+      }
+      loop();
+    }, 2600);
+  }
+  loop();
+
+  $('#pause').addEventListener('click', function () {
+    running = !running;
+    this.textContent = running ? 'Jeda' : 'Lanjutkan';
+  });
+
+  /* ============ approvals ============ */
+
+  var APPR = [
+    { t: "Pengembalian dana Rp 4.750.000", d: "AGT-001 · melebihi batas POL-01 · diminta 3 menit lalu" },
+    { t: "Pemblokiran transaksi nasabah 8842-1190", d: "AGT-005 · POL-03 menahan sampai ditinjau · 7 menit lalu" },
+    { t: "Akses tabel nasabah di luar pengajuan aktif", d: "AGT-005 · POL-02 · 11 menit lalu" }
+  ];
+
+  function renderAppr(target, limit) {
+    var w = $(target); w.innerHTML = '';
+    APPR.slice(0, limit || APPR.length).forEach(function (a, idx) {
+      var r = el('div', 'apprrow' + (a.done ? ' done' : ''));
+      r.innerHTML = '<span class="at">' + a.t + '</span>' +
+        '<span class="ab">' + (a.done
+          ? '<span class="chip ' + (a.done === 'ok' ? 'ok' : 'crit') + '">' + (a.done === 'ok' ? 'Disetujui' : 'Ditolak') + '</span>'
+          : '<button class="btn" data-i="' + idx + '" data-d="ok">Setujui</button><button class="btn danger" data-i="' + idx + '" data-d="no">Tolak</button>') + '</span>' +
+        '<span class="ad">' + a.d + '</span>';
+      w.appendChild(r);
+    });
+    Array.prototype.forEach.call(w.querySelectorAll('[data-d]'), function (b) {
+      b.addEventListener('click', function () {
+        APPR[+b.dataset.i].done = b.dataset.d;
+        renderAppr('#appr'); renderAppr('#mini-appr');
+      });
+    });
+  }
+  renderAppr('#appr'); renderAppr('#mini-appr');
+
+  /* ============ kill switch ============ */
+
+  var killsel = $('#killsel');
+  function fillKill() {
+    killsel.innerHTML = '';
+    AGENTS.filter(function (a) { return a.status === 'aktif'; }).forEach(function (a) {
+      var o = el('option'); o.value = a.id; o.textContent = a.id + ' · ' + a.nm; killsel.appendChild(o);
+    });
+  }
+  fillKill();
+
+  function stopAgent(id) {
+    var a = AGENTS.filter(function (x) { return x.id === id; })[0];
+    if (!a || a.status === 'dihentikan') return;
+    a.status = 'dihentikan';
+    LIVE = AGENTS.filter(function (x) { return x.status === 'aktif'; });
+    fillKill(); renderReg(); renderDetail();
+    $('#killbanner').innerHTML =
+      '<div class="view" style="padding-bottom:0"><div class="banner">' +
+        '<span class="bi" aria-hidden="true">■</span>' +
+        '<span><span class="bt">' + a.id + ' dihentikan</span>' +
+        '<span class="bd">Seluruh token dicabut, permintaan berikutnya ditolak, dan alasan penghentian tercatat di jejak audit pada ' +
+        pad2(clock.h) + ':' + pad2(clock.m) + ' WIB. Pemilik risiko dan satuan kerja kepatuhan diberi tahu.</span></span>' +
+        '<button class="btn" id="undo">Pulihkan</button>' +
+      '</div></div>';
+    $('#undo').addEventListener('click', function () {
+      a.status = 'aktif';
+      LIVE = AGENTS.filter(function (x) { return x.status === 'aktif'; });
+      $('#killbanner').innerHTML = '';
+      fillKill(); renderReg(); renderDetail();
+    });
+  }
+
+  var killArmed = false;
+  $('#killbtn').addEventListener('click', function () {
+    if (!killArmed) {
+      killArmed = true; this.classList.add('armed');
+      this.textContent = 'Konfirmasi: hentikan ' + killsel.value;
+      var b = this;
+      setTimeout(function () { if (killArmed) { killArmed = false; b.classList.remove('armed'); b.textContent = 'Hentikan agent'; } }, 5000);
+      return;
+    }
+    killArmed = false; this.classList.remove('armed'); this.textContent = 'Hentikan agent';
+    stopAgent(killsel.value);
+  });
+
+  /* ============ alerts + rules ============ */
+
+  var aw = $('#alerts');
+  ALERTS.forEach(function (a) {
+    var r = el('div', 'alert');
+    r.innerHTML = '<span class="st ' + a.sev + '"></span>' +
+      '<span><span class="t">' + a.t + '</span><span class="d">' + a.d + '</span>' +
+      '<span class="m">' + a.m.map(function (m) { return '<span class="chip mute plain">' + m + '</span>'; }).join('') + '</span></span>' +
+      '<span class="rt">' + a.rt + '</span>';
+    aw.appendChild(r);
+  });
+
+  var rw = $('#rules');
+  RULES.forEach(function (r) {
+    var tr = el('tr');
+    tr.innerHTML = '<td class="num">' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td>' +
+      '<td>' + (r[3] === 'aktif' ? '<span class="chip ok">Aktif</span>' : '<span class="chip warn">Pantau</span>') + '</td>';
+    rw.appendChild(tr);
+  });
+
+  /* ============ obligations ============ */
+
+  var ow = $('#obls');
+  OBLS.forEach(function (g) {
+    var wrap = el('div');
+    wrap.style.marginBottom = '1rem';
+    wrap.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:.35rem .7rem;align-items:baseline;padding-bottom:.45rem">' +
+      '<span style="font-size:.92rem;font-weight:600">' + g.src + '</span>' +
+      '<span style="font-family:var(--mono);font-size:.68rem;color:var(--muted)">' + g.note + '</span></div>';
+    var card = el('div', 'card');
+    g.items.forEach(function (it) {
+      var lbl = it[1] === 'ok' ? 'Lengkap' : it[1] === 'warn' ? 'Sebagian' : 'Kosong';
+      var row = el('div', 'obl'); row.dataset.open = 'false';
+      var btn = el('button');
+      btn.type = 'button'; btn.setAttribute('aria-expanded', 'false');
+      btn.innerHTML = '<span class="nm2">' + it[0] + '</span><span class="ev">bukti ' + it[2] + '</span>' +
+        '<span style="display:flex;gap:.5rem;align-items:center"><span class="chip ' + it[1] + '">' + lbl + '</span><span class="car">▶</span></span>';
+      var dr = el('div', 'dr', it[3]); dr.hidden = true;
+      btn.addEventListener('click', function () {
+        var open = row.dataset.open === 'true';
+        row.dataset.open = open ? 'false' : 'true';
+        btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+        dr.hidden = open;
+      });
+      row.appendChild(btn); row.appendChild(dr); card.appendChild(row);
+    });
+    wrap.appendChild(card); ow.appendChild(wrap);
+  });
+
+  $('#packbtn').addEventListener('click', function () {
+    var b = this; b.disabled = true; b.textContent = 'Menyusun…';
+    setTimeout(function () {
+      $('#packout').innerHTML =
+        '<div style="border:1px solid color-mix(in srgb, var(--ok) 35%, var(--rule));background:var(--ok-bg);border-radius:6px;padding:.8rem .9rem;display:flex;flex-direction:column;gap:.3rem">' +
+        '<span style="font-family:var(--mono);font-size:.86rem;font-weight:600;color:var(--ok)">PB-2026-08-014 tersusun</span>' +
+        '<span style="font-size:.8rem;color:var(--ink-2);line-height:1.45">9 bagian · 61.204 keputusan otorisasi · 37 identitas · 3 peringatan berikut penanganannya. Ditandatangani digital dan dikunci pada versi ini agar dapat dibandingkan dengan PB-2026-07-011.</span>' +
+        '<span style="font-size:.78rem;color:var(--muted)">Dalam prototipe, berkas tidak benar-benar dihasilkan.</span></div>';
+      b.disabled = false; b.textContent = 'Susun ulang paket';
+    }, 900);
+  });
+
+  /* ============ integrations ============ */
+
+  var cw = $('#conns');
+  CONNS.forEach(function (c) {
+    var n = el('div', 'conn');
+    var chip = c[2] === 'ok' ? '<span class="chip ok">Terhubung</span>' : c[2] === 'warn' ? '<span class="chip warn">Sebagian</span>' : '<span class="chip crit">Terbatas</span>';
+    n.innerHTML = '<span class="ct">' + c[0] + '</span>' +
+      '<span class="cm">' + c[1] + '</span>' +
+      '<span class="cd">' + c[3] + '</span>' +
+      '<span style="margin-top:.2rem">' + chip + '</span>';
+    cw.appendChild(n);
+  });
+
+})();
+</script>
+</body>
+</html>

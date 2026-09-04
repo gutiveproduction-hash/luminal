@@ -1,0 +1,6 @@
+{
+  "name": "LUMINAL - Enterprise Agent Control Plane",
+  "description": "Platform tata kelola identitas agent, otorisasi runtime, mitigasi risiko rantai atribusi, dan penyusun bukti kepatuhan regulator (PADK OJK & UU PDP).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

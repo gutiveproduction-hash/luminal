@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Rencana operasi 18 bulan: menjual bukti kepatuhan agent AI ke sektor keuangan Indonesia.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%AA%AA%3C/text%3E%3C/svg%3E">
+<title>Lapisan Bukti Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root { color-scheme: light dark; }
+  html, body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<style>
+  :root {
+    --paper:      #F1F4F2;
+    --surface:    #FFFFFF;
+    --surface-2:  #E7ECE9;
+    --ink:        #16211E;
+    --ink-2:      #3D4C47;
+    --muted:      #62716B;
+    --rule:       #D2DAD6;
+    --rule-soft:  #E1E7E4;
+    --accent:     #0E6E5C;
+    --accent-ink: #0B5548;
+    --signal:     #9E5A10;
+    --risk:       #9B3327;
+
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    --sans:  "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+    --col: 46rem;
+    --col-wide: 58rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #0F1513;
+      --surface:    #161E1B;
+      --surface-2:  #1D2723;
+      --ink:        #E5EDE9;
+      --ink-2:      #BDC9C4;
+      --muted:      #8B9B95;
+      --rule:       #26332E;
+      --rule-soft:  #1E2A26;
+      --accent:     #55BCA2;
+      --accent-ink: #7ED3BC;
+      --signal:     #DB9A4C;
+      --risk:       #DC7566;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:      #0F1513;
+    --surface:    #161E1B;
+    --surface-2:  #1D2723;
+    --ink:        #E5EDE9;
+    --ink-2:      #BDC9C4;
+    --muted:      #8B9B95;
+    --rule:       #26332E;
+    --rule-soft:  #1E2A26;
+    --accent:     #55BCA2;
+    --accent-ink: #7ED3BC;
+    --signal:     #DB9A4C;
+    --risk:       #DC7566;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16.5px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    padding: 0 1.25rem 6rem;
+  }
+
+  .doc {
+    max-width: var(--col-wide);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3.25rem;
+  }
+
+  .col { max-width: var(--col); }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    padding-top: 3.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .stamp {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.9rem;
+  }
+  .stamp span { white-space: nowrap; }
+  .stamp .sep { color: var(--rule); }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(2.6rem, 7vw, 4.1rem);
+    line-height: 1.02;
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .deck {
+    font-family: var(--serif);
+    font-size: clamp(1.15rem, 2.3vw, 1.4rem);
+    line-height: 1.5;
+    color: var(--ink-2);
+    max-width: 38rem;
+    margin: 0;
+  }
+
+  .filing {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1.1rem 1.5rem;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 1.1rem 0;
+  }
+  .filing div { display: flex; flex-direction: column; gap: 0.15rem; }
+  .filing dt, .filing .k {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .filing .v { font-size: 0.92rem; font-weight: 500; color: var(--ink); }
+
+  /* ---------- sections ---------- */
+
+  section { display: flex; flex-direction: column; gap: 1.15rem; }
+
+  .marker {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+  }
+  .marker b { color: var(--accent); font-weight: 500; }
+
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(1.6rem, 3.4vw, 2.05rem);
+    line-height: 1.16;
+    letter-spacing: -0.014em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  h3 {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+
+  p { margin: 0; max-width: var(--col); }
+  p + p { margin-top: 0.35rem; }
+
+  strong { font-weight: 600; color: var(--ink); }
+  em { font-style: italic; }
+
+  a { color: var(--accent-ink); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+  .lede { font-size: 1.02rem; color: var(--ink-2); }
+
+  ul.plain { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.7rem; max-width: var(--col); }
+  ul.plain > li { padding-left: 1.3rem; position: relative; }
+  ul.plain > li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0.72em;
+    width: 0.5rem; height: 1px;
+    background: var(--accent);
+  }
+
+  /* ---------- thesis ---------- */
+
+  .thesis {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    padding: 1.5rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  .thesis p { font-family: var(--serif); font-size: 1.13rem; line-height: 1.55; }
+
+  /* ---------- broken chain ---------- */
+
+  .chain-wrap { overflow-x: auto; padding-bottom: 0.4rem; }
+  .chain {
+    display: flex;
+    align-items: stretch;
+    gap: 0.55rem;
+    min-width: 34rem;
+  }
+  .link {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    padding: 0.75rem 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .link .who { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.04em; color: var(--ink); }
+  .link .what { font-size: 0.78rem; color: var(--muted); line-height: 1.35; }
+  .link.broken { border-color: var(--risk); border-style: dashed; }
+  .link.broken .who { color: var(--risk); }
+  .arrow {
+    align-self: center;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--rule);
+  }
+  .arrow.cut { color: var(--risk); }
+  .chain-note {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--risk);
+    letter-spacing: 0.02em;
+  }
+
+  /* ---------- deadline rail ---------- */
+
+  .rail { display: flex; flex-direction: column; }
+  .row {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    gap: 0 1.4rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--rule-soft);
+    align-items: start;
+  }
+  .row:last-child { border-bottom: 1px solid var(--rule-soft); }
+  .when {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    padding-top: 0.1rem;
+  }
+  .when small { display: block; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 0.2rem; }
+  .row .body { display: flex; flex-direction: column; gap: 0.3rem; }
+  .row .body p { font-size: 0.92rem; color: var(--ink-2); }
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid currentColor;
+    margin-left: 0.5rem;
+    vertical-align: 0.13em;
+  }
+  .tag.bind { color: var(--accent); }
+  .tag.soft { color: var(--muted); }
+  .tag.wait { color: var(--signal); }
+
+  @media (max-width: 34rem) {
+    .row { grid-template-columns: 1fr; gap: 0.5rem; }
+  }
+
+  /* ---------- tables ---------- */
+
+  .scroll { overflow-x: auto; border: 1px solid var(--rule); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 36rem; font-size: 0.88rem; }
+  caption {
+    caption-side: bottom;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    padding: 0.7rem 0 0;
+    letter-spacing: 0.02em;
+  }
+  th, td { padding: 0.7rem 0.9rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--rule-soft); }
+  thead th {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--rule);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td .sub { display: block; color: var(--muted); font-size: 0.8rem; line-height: 1.4; margin-top: 0.15rem; }
+  .verdict { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.03em; }
+  .verdict.go { color: var(--accent); }
+  .verdict.no { color: var(--risk); }
+  .verdict.mid { color: var(--signal); }
+
+  /* ---------- phases ---------- */
+
+  .phases { display: flex; flex-direction: column; gap: 1.6rem; }
+  .phase {
+    display: grid;
+    grid-template-columns: 3.4rem 1fr;
+    gap: 0 1.3rem;
+    border-left: 2px solid var(--accent);
+    padding-left: 1.3rem;
+  }
+  .phase .no {
+    font-family: var(--mono);
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--accent);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .phase .no small { display: block; font-size: 0.62rem; letter-spacing: 0.09em; color: var(--muted); margin-top: 0.4rem; text-transform: uppercase; }
+  .phase .content { display: flex; flex-direction: column; gap: 0.75rem; }
+  .phase h3 { font-size: 1.18rem; font-family: var(--serif); font-weight: 500; letter-spacing: -0.01em; }
+  .phase p, .phase li { font-size: 0.93rem; }
+  .gate {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: var(--ink-2);
+    background: var(--surface-2);
+    padding: 0.6rem 0.75rem;
+    line-height: 1.5;
+  }
+  .gate b { color: var(--accent); font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.66rem; display: block; margin-bottom: 0.15rem; }
+
+  @media (max-width: 34rem) {
+    .phase { grid-template-columns: 1fr; gap: 0.7rem; padding-left: 1rem; }
+    .phase .no { display: flex; align-items: baseline; gap: 0.6rem; }
+    .phase .no small { margin-top: 0; }
+  }
+
+  /* ---------- kill criteria ---------- */
+
+  .kills { display: flex; flex-direction: column; gap: 0; }
+  .kill {
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    gap: 0 1.2rem;
+    padding: 0.9rem 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .kill:last-child { border-bottom: 1px solid var(--rule-soft); }
+  .kill .trig { font-family: var(--mono); font-size: 0.74rem; color: var(--risk); letter-spacing: 0.02em; padding-top: 0.15rem; }
+  .kill p { font-size: 0.92rem; }
+  @media (max-width: 34rem) { .kill { grid-template-columns: 1fr; gap: 0.35rem; } }
+
+  /* ---------- footnote ---------- */
+
+  .note {
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    padding: 1.3rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .note p, .note li { font-size: 0.88rem; color: var(--ink-2); }
+  .note h3 { font-size: 0.68rem; font-family: var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+
+  .sources { display: flex; flex-direction: column; gap: 0.45rem; }
+  .sources a { font-size: 0.85rem; }
+  .sources li { display: flex; gap: 0.6rem; }
+  .sources ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+  .sources .n { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); flex: 0 0 1.5rem; padding-top: 0.15rem; }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding-top: 1.2rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="doc">
+
+  <header class="masthead">
+    <div class="stamp">
+      <span>Rencana operasi</span><span class="sep">/</span>
+      <span>Rev. 1</span><span class="sep">/</span>
+      <span>2 September 2026</span><span class="sep">/</span>
+      <span>Jalur solo, tanpa pendanaan</span>
+    </div>
+
+    <h1>Lapisan Bukti Agent</h1>
+
+    <p class="deck">Menjual bukti kepatuhan untuk tenaga kerja digital di sektor keuangan Indonesia — dimulai sebagai jasa, berakhir sebagai perangkat lunak.</p>
+
+    <div class="filing">
+      <div><span class="k">Tesis</span><span class="v">Bukti, bukan keamanan</span></div>
+      <div><span class="k">Pembeli pertama</span><span class="v">Pindar &amp; multifinance</span></div>
+      <div><span class="k">Horizon</span><span class="v">18 bulan</span></div>
+      <div><span class="k">Modal awal</span><span class="v">Waktu, bukan uang</span></div>
+    </div>
+  </header>
+
+  <section class="col">
+    <div class="marker"><b>§00</b><span>Keputusan</span></div>
+    <h2>Jangan bangun control plane. Bangun lapisan buktinya.</h2>
+    <div class="thesis">
+      <p>Seorang founder solo tanpa pendanaan tidak akan memenangkan pasar identitas agent — pintu itu sudah ditutup incumbent lewat belasan akuisisi sepanjang 2026. Yang masih terbuka adalah pekerjaan yang tidak mau mereka lakukan: menerjemahkan kewajiban regulator Indonesia menjadi artefak bukti yang lolos pemeriksaan.</p>
+      <p style="font-family: var(--sans); font-size: 0.93rem; color: var(--ink-2);">Sasarannya bukan bank besar, melainkan lapis kedua sektor keuangan — penyelenggara yang memikul kewajiban yang sama tanpa punya tim tata kelola TI untuk memenuhinya.</p>
+    </div>
+  </section>
+
+  <section class="col">
+    <div class="marker"><b>§01</b><span>Mekanisme yang rusak</span></div>
+    <h2>Rantai atribusi putus di hop kedua</h2>
+    <p class="lede">Seluruh kepatuhan TI bersandar pada satu pertanyaan: <em>siapa yang mengizinkan tindakan ini?</em> Agent memutus rantai jawabannya, dan itu terjadi jauh sebelum ada yang berniat jahat.</p>
+
+    <div class="chain-wrap">
+      <div class="chain">
+        <div class="link">
+          <span class="who">Nasabah</span>
+          <span class="what">Memberi persetujuan atas data pribadinya</span>
+        </div>
+        <div class="arrow">&rarr;</div>
+        <div class="link">
+          <span class="who">Petugas</span>
+          <span class="what">Menugaskan agent memproses pengajuan</span>
+        </div>
+        <div class="arrow cut">&#8942;</div>
+        <div class="link broken">
+          <span class="who">Agent</span>
+          <span class="what">Memakai service account bersama — identitas petugas hilang di sini</span>
+        </div>
+        <div class="arrow cut">&#8942;</div>
+        <div class="link broken">
+          <span class="who">Tool / API</span>
+          <span class="what">Tidak menerima informasi "atas nama siapa"</span>
+        </div>
+      </div>
+    </div>
+    <p class="chain-note">Log mencatat: "SVC_SCORING mengubah 4.180 record, 02:14 WIB." Pemeriksa bertanya siapa yang menyetujui. Tidak ada jawaban.</p>
+
+    <ul class="plain">
+      <li><strong>Identitas pinjaman.</strong> Agent berjalan memakai kredensial manusia atau service account bersama, sehingga atribusi — fondasi seluruh audit — lenyap sejak baris pertama log.</li>
+      <li><strong>Izin statis vs niat dinamis.</strong> Tata kelola akses klasik memberi izin di awal sesi; agent butuh izin per tindakan, per konteks, dengan batas nominal dan waktu.</li>
+      <li><strong>Tidak ada pencabutan berjalan.</strong> Otorisasi diputuskan sekali di depan. Ketika perilaku agent menyimpang di tengah proses, tidak ada mekanisme baku untuk menariknya kembali.</li>
+      <li><strong>Log bukan bukti.</strong> Log adalah data mentah; bukti adalah artefak terstruktur yang bertahan saat diperiksa. Jarak antara keduanya persis di situlah produk ini berdiri.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="marker"><b>§02</b><span>Jendela waktu</span></div>
+    <h2>Yang sudah mengikat, dan yang belum bergigi</h2>
+    <p class="lede col">Aturan main untuk bootstrap: jual ke kewajiban yang sudah mengikat hari ini, posisikan diri untuk yang menyusul. Jangan pernah menjual ke regulasi yang belum punya sanksi.</p>
+
+    <div class="rail">
+      <div class="row">
+        <div class="when">29 Apr 2025<small>Berlaku</small></div>
+        <div class="body">
+          <h3>Panduan Tata Kelola AI Perbankan OJK <span class="tag soft">Soft law</span></h3>
+          <p>Tiga prinsip — akuntabilitas, pengawasan manusia, keandalan — di enam tahap siklus hidup model. Tidak punya skema denda sendiri, tapi OJK memposisikannya sebagai patokan minimum sektor perbankan.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="when">1 Mar 2026<small>Berlaku</small></div>
+        <div class="body">
+          <h3>PADK OJK 1/2026 — Penyelenggaraan TI oleh Bank Umum <span class="tag bind">Mengikat</span></h3>
+          <p>Wajib mendokumentasikan pihak penyedia jasa TI (seleksi, penilaian risiko, evaluasi), arsitektur TI, tata kelola data dengan DPIA untuk pemrosesan berisiko tinggi. Kontrak vendor harus memuat hak audit OJK. Insiden dilaporkan dalam 24 jam, laporan lengkap 5 hari kerja.</p>
+          <p><strong>Celahnya:</strong> aturan ini tidak menyebut AI secara eksplisit. Bank tetap wajib memasukkan agent ke kerangka yang tidak dirancang untuknya — dan tidak ada yang memberi tahu caranya.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="when">20 Mei 2026<small>Menunggu</small></div>
+        <div class="body">
+          <h3>Rperpres Badan Pelindungan Data Pribadi <span class="tag wait">Pemicu 2027</span></h3>
+          <p>Rancangan sudah diajukan ke Presiden, menunggu tanda tangan; operasional penuh diperkirakan 6–12 bulan setelahnya. Sanksi UU PDP sendiri sudah hidup: administratif hingga 2% pendapatan tahunan per variabel pelanggaran, pidana korporasi hingga Rp60 miliar. <strong>Ketika badan ini beroperasi, permintaan berubah dari sukarela menjadi terpaksa.</strong></p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="when">2026<small>Draf</small></div>
+        <div class="body">
+          <h3>Perpres Etika dan Keamanan AI <span class="tag soft">Tanpa sanksi</span></h3>
+          <p>Dirancang tanpa mekanisme penalti; penegakan mengacu ke aturan yang sudah ada. Berguna sebagai bahasa dalam proposal, tidak berguna sebagai alasan membeli. Jangan bangun proposisi nilai di atasnya.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="when">2 Des 2027<small>Berlaku</small></div>
+        <div class="body">
+          <h3>EU AI Act — kewajiban sistem berisiko tinggi <span class="tag bind">Mengikat</span></h3>
+          <p>Pencatatan kejadian otomatis selama operasi, dokumentasi teknis, desain pengawasan manusia, conformity assessment sebelum dipasarkan. Denda hingga €15 juta atau 3% omzet global. Relevan hanya untuk klien yang melayani pasar Eropa — tapi itu justru klien dengan anggaran terbesar.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="marker"><b>§03</b><span>Peta pembeli</span></div>
+    <h2>Mulai dari yang paling terekspos, bukan yang paling kaya</h2>
+    <p class="lede col">Rasa sakit dan kecepatan keputusan lebih menentukan daripada ukuran anggaran, karena Anda tidak punya runway untuk menunggu siklus pengadaan bank besar.</p>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Segmen</th>
+            <th scope="col">Kenapa sakit</th>
+            <th scope="col">Siklus jual</th>
+            <th scope="col">Urutan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Pindar (fintech lending)<span class="sub">94 penyelenggara berizin per Mei–Juli 2026</span></td>
+            <td>Paling padat AI, paling terekspos UU PDP, tim kecil, keputusan cepat</td>
+            <td class="num">6–14 minggu</td>
+            <td><span class="verdict go">MULAI DI SINI</span></td>
+          </tr>
+          <tr>
+            <td>Multifinance &amp; asuransi</td>
+            <td>Skoring dan klaim otomatis menyentuh data pribadi; pengawasan sektoral aktif</td>
+            <td class="num">2–5 bulan</td>
+            <td><span class="verdict go">GELOMBANG 2</span></td>
+          </tr>
+          <tr>
+            <td>BPR / BPRS hasil konsolidasi<span class="sub">200+ dalam antrean merger per Juni 2026</span></td>
+            <td>Setiap merger memaksa integrasi TI dan dokumentasi ulang — momen pembelian alami</td>
+            <td class="num">3–6 bulan</td>
+            <td><span class="verdict mid">OPORTUNISTIK</span></td>
+          </tr>
+          <tr>
+            <td>Bank umum besar</td>
+            <td>Kewajiban terberat dan anggaran terbesar, tapi butuh vendor tervalidasi dan security review penuh</td>
+            <td class="num">9–18 bulan</td>
+            <td><span class="verdict no">JANGAN DULU</span></td>
+          </tr>
+          <tr>
+            <td>KAP, konsultan TI, vendor core banking</td>
+            <td>Bukan pembeli — mereka sudah duduk di ruangan yang Anda tuju</td>
+            <td class="num">—</td>
+            <td><span class="verdict mid">KANAL, BUKAN KLIEN</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <caption>Panjang siklus jual adalah estimasi penulis, bukan angka bersumber. Validasi sebelum dipakai untuk perencanaan kas.</caption>
+    </div>
+  </section>
+
+  <section>
+    <div class="marker"><b>§04</b><span>Urutan 18 bulan</span></div>
+    <h2>Jasa dulu, produk kemudian, penegakan paling akhir</h2>
+    <p class="lede col">Urutan ini bukan selera. Tiap fase mendanai fase berikutnya dan memangkas satu risiko spesifik sebelum risiko itu jadi mahal.</p>
+
+    <div class="phases">
+      <article class="phase">
+        <div class="no">01<small>Bln 1–3</small></div>
+        <div class="content">
+          <h3>Asesmen berbayar — nol baris kode</h3>
+          <p>Jual satu engagement: <strong>Daftar Induk Agent &amp; AI</strong>. Inventarisasi setiap agent, integrasi, dan kredensial yang menyentuh data nasabah; petakan ke PADK 1/2026, UU PDP, dan Panduan AI OJK; hasilkan daftar gap dan satu contoh Paket Bukti siap-periksa.</p>
+          <p>Setiap dokumen dibuat sebagai template sejak hari pertama. Anda sedang dibayar untuk melakukan riset pasar dan membangun bahan baku produk sekaligus.</p>
+          <div class="gate"><b>Gerbang lulus</b>3 klien membayar, dan ≥60% isi deliverable identik antarklien. Kesamaan itulah bukti bahwa pekerjaan ini bisa dijadikan perangkat lunak.</div>
+        </div>
+      </article>
+
+      <article class="phase">
+        <div class="no">02<small>Bln 4–9</small></div>
+        <div class="content">
+          <h3>Produk tipis yang tidak menyentuh produksi</h3>
+          <p>Ubah bagian berulang menjadi perangkat lunak: registry agent dan kredensial, generator paket bukti, pelacak kewajiban berikut tanggalnya. Berlangganan Rp 6–15 juta per bulan, kontrak tahunan dibayar di muka — itulah pendanaan Anda.</p>
+          <p><strong>Sengaja tanpa penegakan runtime.</strong> Karena tidak menyentuh jalur produksi klien, tidak ada security review berat, dan siklus jual tetap pendek. Ini keputusan strategis, bukan keterbatasan.</p>
+          <div class="gate"><b>Gerbang lulus</b>10–15 pelanggan berlangganan, churn ≤1, dan porsi pendapatan jasa turun di bawah 40%. Kalau jasa masih dominan di bulan 12, yang Anda bangun adalah konsultansi.</div>
+        </div>
+      </article>
+
+      <article class="phase">
+        <div class="no">03<small>Bln 10–18</small></div>
+        <div class="content">
+          <h3>Runtime — parit sesungguhnya, risiko sesungguhnya</h3>
+          <p>Baru di sini sentuh penegakan: broker kredensial per agent, batas nominal dan waktu per tindakan, tombol henti, pencabutan izin yang sedang berjalan. Harga naik ke Rp 25–75 juta per bulan karena nilainya berubah dari dokumentasi menjadi kendali.</p>
+          <p>Fase ini juga membuat Anda ikut bertanggung jawab kalau proses produksi klien berhenti. Jangan masuki sebelum ada pendapatan yang sanggup menanggung konsekuensi itu.</p>
+          <div class="gate"><b>Gerbang lulus</b>Minimal 3 pelanggan Fase 02 bersedia menjadi design partner runtime dan menandatangani sebelum Anda menulis kodenya.</div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <div class="marker"><b>§05</b><span>Ekonomi unit</span></div>
+    <h2>Angka kasar untuk satu orang</h2>
+    <p class="lede col">Seluruh angka di tabel ini adalah estimasi penulis, bukan data bersumber. Nilainya bukan pada presisi, melainkan pada urutan besarannya — dan pada seberapa cepat angka ini bisa dibantah oleh sepuluh percakapan pelanggan.</p>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Fase</th>
+            <th scope="col">Model</th>
+            <th scope="col">Harga satuan</th>
+            <th scope="col">Volume impas</th>
+            <th scope="col">Pendapatan bulanan di target</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Biaya dasar</td>
+            <td>Hidup + infrastruktur + perkakas, solo</td>
+            <td class="num">Rp 20 jt/bln</td>
+            <td class="num">—</td>
+            <td class="num">—</td>
+          </tr>
+          <tr>
+            <td>01 · Asesmen</td>
+            <td>Proyek 2–3 minggu</td>
+            <td class="num">Rp 35–60 jt</td>
+            <td class="num">1 proyek / 2 bln</td>
+            <td class="num">Rp 90 jt<span class="sub">2 proyek per bulan, batas kapasitas solo</span></td>
+          </tr>
+          <tr>
+            <td>02 · Langganan</td>
+            <td>SaaS dokumentasi &amp; bukti</td>
+            <td class="num">Rp 10 jt/bln</td>
+            <td class="num">2 pelanggan</td>
+            <td class="num">Rp 150 jt<span class="sub">15 pelanggan ≈ Rp 1,8 M ARR</span></td>
+          </tr>
+          <tr>
+            <td>03 · Runtime</td>
+            <td>Kendali per agent</td>
+            <td class="num">Rp 40 jt/bln</td>
+            <td class="num">1 pelanggan</td>
+            <td class="num">Rp 320 jt<span class="sub">8 pelanggan ≈ Rp 3,8 M ARR</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <caption>Estimasi penulis, September 2026. Tidak bersumber dari riset pasar primer maupun benchmark industri.</caption>
+    </div>
+
+    <p class="col">Bacaannya sederhana: satu asesmen menutupi dua bulan biaya hidup, jadi risiko kehabisan uang praktis hilang sejak bulan pertama. Yang tersisa hanyalah risiko membangun hal yang salah — dan itu justru risiko yang dijinakkan oleh urutan fase di atas.</p>
+  </section>
+
+  <section class="col">
+    <div class="marker"><b>§06</b><span>Kriteria batal</span></div>
+    <h2>Kapan berhenti, diputuskan sebelum Anda jatuh cinta</h2>
+    <p class="lede">Rencana tanpa kondisi batal bukan rencana, melainkan harapan. Tuliskan sekarang, saat Anda masih objektif.</p>
+
+    <div class="kills">
+      <div class="kill">
+        <div class="trig">Bulan 3</div>
+        <p>Kurang dari 3 klien membayar untuk asesmen. Artinya rasa sakitnya nyata tapi belum cukup mahal untuk dianggarkan. Hentikan, jangan turunkan harga.</p>
+      </div>
+      <div class="kill">
+        <div class="trig">Bulan 9</div>
+        <p>Kurang dari 8 pelanggan berlangganan, atau churn di atas 2. Yang Anda bangun adalah fitur, bukan produk — dan fitur tidak bertahan menghadapi vendor yang sudah ada di dalam.</p>
+      </div>
+      <div class="kill">
+        <div class="trig">Kapan saja</div>
+        <p>Vendor core banking lokal yang sudah dipakai klien memasukkan kemampuan ini secara cuma-cuma. Parit hilang; pivot dari menjual produk menjadi memasok modul ke kanal mereka.</p>
+      </div>
+      <div class="kill">
+        <div class="trig">Risiko utama</div>
+        <p>Platform model besar menyediakan jejak audit lintas vendor yang diterima pemeriksa. Satu-satunya pertahanan adalah netralitas: tidak ada organisasi yang mau diaudit oleh pihak yang membuat sistem yang sedang diaudit.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="col">
+    <div class="marker"><b>§07</b><span>Larangan</span></div>
+    <h2>Empat cara tercepat membakar 18 bulan</h2>
+    <ul class="plain">
+      <li><strong>Membangun policy engine dari nol.</strong> Bagian itu sudah selesai secara standar — OAuth 2.1, dan draf kerja AuthZEN di OpenID Foundation. Yang belum selesai adalah delegasi lintas batas organisasi dan bukti yang bisa diperiksa. Bekerjalah di sana.</li>
+      <li><strong>Mengejar bank besar lebih dulu.</strong> Anda akan menghabiskan seluruh runway di ruang tunggu pengadaan, memenangkan satu logo, dan kehabisan waktu sebelum kontrak kedua.</li>
+      <li><strong>Menjual "keamanan AI".</strong> Anggaran keamanan sudah penuh dan dijaga CISO yang punya vendor. Jual "bukti untuk pemeriksa" — itu anggaran audit dan kepatuhan, yang tidak dipotong saat efisiensi.</li>
+      <li><strong>Menunggu Perpres AI.</strong> Dirancang tanpa sanksi. Regulasi tanpa gigi tidak pernah menggerakkan anggaran, seberapa pun ramai pemberitaannya.</li>
+    </ul>
+  </section>
+
+  <section class="col">
+    <div class="marker"><b>§08</b><span>Nota kejujuran</span></div>
+    <h2>Mana yang fakta, mana yang tebakan saya</h2>
+
+    <div class="note">
+      <div>
+        <h3>Terverifikasi dari sumber</h3>
+        <p>Tanggal berlaku dan isi PADK OJK 1/2026; Panduan Tata Kelola AI Perbankan OJK 29 April 2025; sanksi UU PDP (2% pendapatan tahunan, hingga Rp60 miliar) dan status Badan PDP; 94 pindar berizin per Mei–Juli 2026; 200+ BPR/BPRS dalam proses merger per Juni 2026; tanggal EU AI Act; ukuran pasar identitas non-manusia USD 11,1 miliar (2025) menuju USD 27,3 miliar (2033).</p>
+      </div>
+      <div>
+        <h3>Estimasi saya, belum divalidasi</h3>
+        <p>Seluruh harga, ARPU, biaya hidup, panjang siklus penjualan, dan volume impas. Perlakukan sebagai hipotesis yang harus dipatahkan lewat sepuluh percakapan pelanggan sebelum satu baris kode ditulis.</p>
+      </div>
+      <div class="sources">
+        <h3>Sumber</h3>
+        <ul>
+          <li><span class="n">01</span><a href="https://www.ojk.go.id/id/regulasi/Pages/PADK-1-Tahun-2026-Penyelenggaraan-Teknologi-Informasi-oleh-Bank-Umum.aspx">OJK — PADK 1 Tahun 2026, Penyelenggaraan Teknologi Informasi oleh Bank Umum</a></li>
+          <li><span class="n">02</span><a href="https://www.crowe.com/id/news/visibilitas-ekosistem-ti-dan-implikasi-padk-ojk-1-2026">Crowe Indonesia — Visibilitas ekosistem TI dan implikasi PADK OJK 1/2026</a></li>
+          <li><span class="n">03</span><a href="https://www.theleveragedyears.com/ai-regulation-news/indonesia-ojk-ai-governance-banking-2026">Indonesia's OJK AI Governance Guide for Banks</a></li>
+          <li><span class="n">04</span><a href="https://it.proxsisgroup.com/tanpa-badan-pdp-denda-rp60-miliar-tetap-bisa-menjerat/">Proxsis — Tanpa Badan PDP, denda Rp60 miliar tetap bisa menjerat</a></li>
+          <li><span class="n">05</span><a href="https://www.hukumonline.com/berita/a/pemerintah-siapkan-perpres-ai-tanpa-sanksi--prioritaskan-tata-kelola-dan-kepercayaan-publik-lt69b8f1b63acd9/">Hukumonline — Pemerintah siapkan Perpres AI tanpa sanksi</a></li>
+          <li><span class="n">06</span><a href="https://money.kompas.com/read/2026/05/06/161441126/daftar-pinjol-resmi-ojk-mei-2026-terbaru-tinggal-94-perusahaan-cek-lengkapnya">Kompas — Daftar pindar resmi OJK, 94 penyelenggara (Mei 2026)</a></li>
+          <li><span class="n">07</span><a href="https://www.antaranews.com/berita/5639331/ojk-81-bpr-bprs-disetujui-untuk-konsolidasi-per-akhir-juni-2026">Antara — Konsolidasi BPR/BPRS per akhir Juni 2026</a></li>
+          <li><span class="n">08</span><a href="https://www.legiscope.com/blog/eu-ai-act-timeline-deadlines.html">Legiscope — EU AI Act compliance deadlines 2026–2028</a></li>
+          <li><span class="n">09</span><a href="https://www.grandviewresearch.com/industry-analysis/non-human-identity-access-management-market-report">Grand View Research — Non-human identity access management market</a></li>
+          <li><span class="n">10</span><a href="https://www.cerbos.dev/blog/mcp-authorization-standards">Cerbos — MCP authorization standards and what's still missing</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Lapisan Bukti Agent</span>
+    <span>Rev. 1 · 2 September 2026</span>
+    <span>Dokumen kerja, bukan nasihat hukum atau investasi</span>
+  </footer>
+
+</div>
+</body>
+</html>
