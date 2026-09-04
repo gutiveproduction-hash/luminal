@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js release",
     "lint": "tsc --noEmit",
-    "electron:build:arm64": "npm run build && electron-builder --mac --arm64"
+    "electron:build:arm64": "npm run build && electron-builder --mac --arm64",
+    "electron:build:x64": "npm run build && electron-builder --mac --x64",
+    "electron:build:win": "npm run build && electron-builder --win --x64",
+    "electron:build:all": "npm run build && electron-builder --mac --arm64 --x64 --win --x64"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -53,16 +56,38 @@
         {
           "target": "dmg",
           "arch": [
-            "arm64"
+            "arm64",
+            "x64"
           ]
         },
         {
           "target": "zip",
           "arch": [
-            "arm64"
+            "arm64",
+            "x64"
           ]
         }
       ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     }
   }
 }
