@@ -344,6 +344,14 @@ export default function App() {
 
   const handleSimulateEvent = () => {
     const activePool = agents.filter((a) => a.status === 'active');
+    if (activePool.length === 0) {
+      addToast(
+        'warning',
+        'Tidak Ada Agent Aktif',
+        'Tidak dapat menjalankan simulasi karena tidak ada agent berstatus aktif.'
+      );
+      return;
+    }
     const randomAgent = activePool[Math.floor(Math.random() * activePool.length)];
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(

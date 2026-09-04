@@ -102,11 +102,14 @@ export const RegistryView: React.FC<RegistryViewProps> = ({
 
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full w-full sm:w-auto scrollbar-thin">
           {[
-            { id: 'all', label: 'Semua (9)' },
-            { id: 'broken', label: 'Atribusi Putus (4)' },
-            { id: 'standing', label: 'Hak Permanen (5)' },
-            { id: 'noowner', label: 'Tanpa Pemilik (3)' },
-            { id: 'shadow', label: 'Shadow Agent (1)' },
+            { id: 'all', label: `Semua (${agents.length})` },
+            {
+              id: 'broken',
+              label: `Atribusi Putus (${agents.filter((a) => a.delegationChain.some((c) => c.isBroken)).length})`,
+            },
+            { id: 'standing', label: `Hak Permanen (${agents.filter((a) => a.isStanding).length})` },
+            { id: 'noowner', label: `Tanpa Pemilik (${agents.filter((a) => a.owner.includes('Belum')).length})` },
+            { id: 'shadow', label: `Shadow Agent (${agents.filter((a) => a.isShadow).length})` },
           ].map((tab) => (
             <button
               key={tab.id}

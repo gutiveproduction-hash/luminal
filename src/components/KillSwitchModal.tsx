@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ShieldAlert,
   AlertOctagon,
@@ -29,6 +29,13 @@ export const KillSwitchModal: React.FC<KillSwitchModalProps> = ({
   );
   const [reason, setReason] = useState('Anomali perilaku terdeteksi / Pelanggaran batas otorisasi');
   const [isArmed, setIsArmed] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setTargetId(selectedAgentId || (agents[0]?.id ?? ''));
+      setIsArmed(false);
+    }
+  }, [isOpen, selectedAgentId]);
 
   if (!isOpen) return null;
 
